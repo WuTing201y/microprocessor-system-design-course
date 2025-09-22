@@ -1,6 +1,6 @@
-#define NUM 24 // 首先定義LED的數目
+#define NUM 23 // 首先定義LED的數目
 int leds[NUM] = {
-D0, D1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, D14, D15, A0, A1, A2, A3, LED1, LED2, LED3,LED4
+D0, D1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, D14, D15, A0, A1, A2, A3, LED1, LED2, LED3,LED4
 };
 // 將每個腳位模式設為OUTPUT
 void setup() {
@@ -9,23 +9,53 @@ void setup() {
   }
 }
 
-void one() //每次增加一個燈，兩邊分別往內閃，再往外熄
+//傳統跑馬燈：像是一顆燈從右邊跑到左邊，再往回跑，一次只會亮一顆燈。
+void one() 
+{
+    for(int i = 0; i < NUM; i++){
+        digitalWrite(leds[i], HIGH);
+        delay(300);
+        digitalWrite(leds[i], LOW);
+    }
+    for(int i = NUM-2; i > 0; i--){
+        digitalWrite(leds[i], HIGH);
+        delay(300);
+        digitalWrite(leds[i], LOW);
+    }
+}
+
+//舞台對稱感：兩端同時亮，一圈一圈向中心靠近，最後中間燈全亮，接著再從中間往外熄滅，直到兩端都熄滅。
+void two()
 {
     for(int i = 0; i <= 7; i++){
-        noTone(leds[3]);
         digitalWrite(leds[i], HIGH);
         digitalWrite(leds[15-i], HIGH);
         delay(300);
     }
     for(int i = 7; i >= 0 ; i++){
-        noTone(leds[3]);
         digitalWrite(leds[i], LOW);
         digitalWrite(leds[15-i], LOW);
         delay(300);
     }
 }
 
-void two()
+//波浪推進：由右向左逐顆亮起，抵達最左邊後，反向逐顆熄滅。
+void three()
 {
-  
+
 }
+
+//奇偶交錯：最右邊開始奇數燈亮，到第15顆燈結束，再從第16顆燈偶數亮回來。
+void four()
+{
+
+}
+
+//雙點對稱跑馬燈：一開始左右兩端的兩顆燈亮起，以對稱的方式向中間移動，每次移動都保持兩顆燈的狀態，
+//當抵達中間時（或兩顆燈相鄰）再往返循環。
+void five()
+{
+
+}
+
+
