@@ -1,0 +1,31 @@
+#define NUM 24 // 首先定義LED的數目
+int leds[NUM] = {
+D0, D1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, D14, D15, A0, A1, A2, A3, LED1, LED2, LED3,LED4
+};
+// 將每個腳位模式設為OUTPUT
+void setup() {
+  for(int i = 0; i < NUM; i++){
+    pinMode(leds[i], OUTPUT);
+  }
+}
+
+void one() //每次增加一個燈，兩邊分別往內閃，再往外熄
+{
+    for(int i = 0; i <= 7; i++){
+        noTone(leds[3]);
+        digitalWrite(leds[i], HIGH);
+        digitalWrite(leds[15-i], HIGH);
+        delay(300);
+    }
+    for(int i = 7; i >= 0 ; i++){
+        noTone(leds[3]);
+        digitalWrite(leds[i], LOW);
+        digitalWrite(leds[15-i], LOW);
+        delay(300);
+    }
+}
+
+void two()
+{
+  
+}
