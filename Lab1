@@ -1,6 +1,6 @@
-#define NUM 24 // 首先定義LED的數目
+#define NUM 23 // 首先定義LED的數目
 int leds[NUM] = {
-D0, D1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, D14, D15, A0, A1, A2, A3, LED1, LED2, LED3,LED4
+D0, D1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, D14, D15, A0, A1, A2, A3, LED1, LED2, LED3,LED4
 };
 // 將每個腳位模式設為OUTPUT
 void setup() {
@@ -57,8 +57,8 @@ void three(unsigned times)
     }
   }
 }
-
-void four(unsigned times)
+//三顆燈由右往左前進
+void four(unsigned times) 
 {
   for(int j = 0; j < times; j++){
     for(int i = 2; i <=14; i++){
@@ -80,22 +80,39 @@ void five(unsigned times)
 {  
   for(int j = 0; j < times; j++){
 
-    for(int i = 1; i <= 7; i++){
-      if(i == 3 || i-1 == 3) noTone(leds[4]);
+    for(int i = 1; i <= 7ˊ; i++){
+      
       digitalWrite(leds[i], LOW);
       digitalWrite(leds[i-1], LOW);
-      digitalWrite(leds[15-i-1], LOW);
-      digitalWrite(leds[15-i], LOW);
-      delay(600);
+      if(i != 7){
+        digitalWrite(leds[15-i-1], LOW);
+        digitalWrite(leds[15-i], LOW);
+        delay(600);
+      }
       digitalWrite(leds[i], HIGH);
       digitalWrite(leds[i-1], HIGH);
-      digitalWrite(leds[15-i+1], HIGH);
-      digitalWrite(leds[15-i], HIGH);
+      if(i != 7){
+        digitalWrite(leds[15-i+1], HIGH);
+        digitalWrite(leds[15-i], HIGH);
+      }
     }
+  }
+}
+
+//一開始全部熄滅
+void begin()
+{
+  for(int i = 0; i < NUM; i++){
+    digitalWrite(leds[i], HIGH);
   }
 }
 
 void loop()
 {
-  five(5);
+  begin();
+  one(3);
+  two(3);
+  three(3);
+  four(3);
+  five(3);
 }
