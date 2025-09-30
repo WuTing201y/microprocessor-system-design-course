@@ -1,0 +1,122 @@
+#define NUM 16 // 首先定義LED的數目
+int leds[NUM] = {
+D0, D1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, D14, D15};
+// 將每個腳位模式設為OUTPUT
+void setup() {
+  for(int i = 0; i < NUM; i++){
+    pinMode(leds[i], OUTPUT);
+  }
+}
+void LedsDisplay(unsigned value, unsigned dur, unsigned siz)
+{
+    unsigned tmp = (value & 0xFFFF);
+    for(int i = 0; i < siz; i++){
+        if(tmp & 0x1) digitalWrite(leds[i], LOW);
+        else digitalWrite(leds[i], HIGH);
+        tmp >>= 1;
+    }
+    delay(dur);
+    return;
+}
+//傳統跑馬燈：像是一顆燈從右邊跑到左邊，再往回跑，一次只會亮一顆燈。
+void one(unsigned times) 
+{
+    unsigned value = 0x0001;
+
+    for(int i = 0; i < NUM; i++){
+        LedsDisplay(value, 150, NUM);
+        value <<= 1;
+        value |= 0x01;
+    }
+}
+
+//舞台對稱感：兩端同時亮，一圈一圈向中心靠近，最後中間燈全亮，接著再從中間往外熄滅，直到兩端都熄滅。
+void two(unsigned times)
+{
+    unsigned valA = 0xC000;
+    unsigned valB = 0x0003;
+    unsigned off = 0x0000;
+
+    for(int i = 0; i < NUM/2; i++){
+        LedsDisplay(valA, 150, NUM/2);
+        LedsDisplay(valB, 150, NUM/2);
+        LedsDisplay(off, 150, NUM);
+        valA >>= 2;
+        valB <<= 2;
+    }
+    
+}
+
+//波浪推進：由右向左逐顆亮起，抵達最左邊後，反向逐顆熄滅。
+void three(unsigned times)
+{
+  for(int j = 0; j < times; j++){
+    for(int i = 0; i < 16; i++){
+      digitalWrite(leds[i], LOW);
+      delay(150);
+    }
+    for(int i = 16-2; i>=0; i--){
+      digitalWrite(leds[i], HIGH);
+      delay(150);
+    }
+  }
+}
+//三顆燈由右往左前進
+void four(unsigned times) 
+{
+  for(int j = 0; j < times; j++){
+    for(int i = 2; i <=14; i++){
+      digitalWrite(leds[i-2], LOW);
+      digitalWrite(leds[i-1], LOW);
+      digitalWrite(leds[i], LOW);
+      delay(150);
+      digitalWrite(leds[i-2], HIGH);
+    }
+    for(int k = 0; k <=14; k++){
+      digitalWrite(leds[k], HIGH);
+    }
+  }
+}
+
+//雙點對稱跑馬燈：一開始左右兩端的兩顆燈亮起，以對稱的方式向中間移動，每次移動都保持兩顆燈的狀態，
+//當抵達中間時（或兩顆燈相鄰）再往返循環。
+void five(unsigned times)
+{  
+  for(int j = 0; j < times; j++){
+
+    for(int i = 1; i <= 7; i++){
+      
+      digitalWrite(leds[i], LOW);
+      digitalWrite(leds[i-1], LOW);
+      if(i != 7){
+        digitalWrite(leds[15-i-1], LOW);
+        digitalWrite(leds[15-i], LOW);
+        delay(600);
+      }
+      digitalWrite(leds[i], HIGH);
+      digitalWrite(leds[i-1], HIGH);
+      if(i != 7){
+        digitalWrite(leds[15-i+1], HIGH);
+        digitalWrite(leds[15-i], HIGH);
+      }
+    }
+  }
+}
+
+//一開始全部熄滅
+void begin()
+{
+  for(int i = 0; i < NUM; i++){
+    digitalWrite(leds[i], HIGH);
+  }
+}
+
+void loop()
+{
+  begin();
+  one(3);
+  two(3);
+  three(3);
+  four(3);
+  five(3);
+}
