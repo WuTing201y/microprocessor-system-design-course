@@ -7,12 +7,12 @@ void setup() {
     pinMode(leds[i], OUTPUT);
   }
 }
-void LedsDisplay(unsigned value, unsigned dur, unsigned siz)
+void LedsDisplay(unsigned value, unsigned dur)
 {
     unsigned tmp = (value & 0xFFFF);
-    for(int i = 0; i < siz; i++){
+    for(int i = 0; i < NUM; i++){
         if(tmp & 0x1) digitalWrite(leds[i], LOW);
-        else digitalWrite(leds[i], HIGH);
+        else          digitalWrite(leds[i], HIGH);
         tmp >>= 1;
     }
     delay(dur);
@@ -21,93 +21,107 @@ void LedsDisplay(unsigned value, unsigned dur, unsigned siz)
 //傳統跑馬燈：像是一顆燈從右邊跑到左邊，再往回跑，一次只會亮一顆燈。
 void one(unsigned times) 
 {
-    unsigned value = 0x0001;
+    for(int j = 0; j < times; j++){
+        unsigned value = 0x0001;
 
-    for(int i = 0; i < NUM; i++){
-        LedsDisplay(value, 150, NUM);
-        value <<= 1;
-        value |= 0x01;
+        for(int i = 0; i < NUM; i++){
+            LedsDisplay(value, 150);
+            value <<= 1;
+            value |= 0x01;
+        }
     }
 }
 
 //舞台對稱感：兩端同時亮，一圈一圈向中心靠近，最後中間燈全亮，接著再從中間往外熄滅，直到兩端都熄滅。
 void two(unsigned times)
 {
-    unsigned valA = 0xC000;
-    unsigned valB = 0x0003;
-    unsigned off = 0x0000;
+    for(int j = 0; j < times; j++){
+        unsigned mask = 0x0000;
 
-    for(int i = 0; i < NUM/2; i++){
-        LedsDisplay(valA, 150, NUM/2);
-        LedsDisplay(valB, 150, NUM/2);
-        LedsDisplay(off, 150, NUM);
-        valA >>= 2;
-        valB <<= 2;
+        for(int i = 0; i < NUM/2; i++){
+            mask |= (0x1 << i);
+            mask |= (0x1 <<(NUM - 1 - i));
+            LedsDisplay(mask, 150);
+        }
+
+        for(int i = NUM/2-1; i >=0 ; i--){
+            mask &= ~(0x1 << i);
+            mask &= ~(0x1 <<(NUM - 1 - i));
+            LedsDisplay(mask, 150);
+        }
     }
-    
 }
 
 //波浪推進：由右向左逐顆亮起，抵達最左邊後，反向逐顆熄滅。
-void three(unsigned times)
-{
-  for(int j = 0; j < times; j++){
-    for(int i = 0; i < 16; i++){
-      digitalWrite(leds[i], LOW);
-      delay(150);
+void three(unsigned times) {
+  for (unsigned t = 0; t < times; t++) {
+    unsigned mask = 0;
+
+    // 由右往左逐顆亮
+    for (int i = 0; i < NUM; i++) {
+      mask |= (1u << i);
+      LedsDisplay(mask, 150);
     }
-    for(int i = 16-2; i>=0; i--){
-      digitalWrite(leds[i], HIGH);
-      delay(150);
+
+    // 由左往右逐顆熄
+    for (int i = NUM - 1; i >= 0; i--) {
+      mask &= ~(1u << i);
+      LedsDisplay(mask, 150);
     }
   }
 }
+
 //三顆燈由右往左前進
-void four(unsigned times) 
-{
-  for(int j = 0; j < times; j++){
-    for(int i = 2; i <=14; i++){
-      digitalWrite(leds[i-2], LOW);
-      digitalWrite(leds[i-1], LOW);
-      digitalWrite(leds[i], LOW);
-      delay(150);
-      digitalWrite(leds[i-2], HIGH);
+void four(unsigned times) {
+  for (unsigned t = 0; t < times; t++) {
+    unsigned mask = 0;
+
+    // 三顆燈從右往左移動 (i=2 ~ 14)
+    for (int i = 2; i <= 14; i++) {
+      mask = (1u << i) | (1u << (i - 1)) | (1u << (i - 2));
+      LedsDisplay(mask, 150);
     }
-    for(int k = 0; k <=14; k++){
-      digitalWrite(leds[k], HIGH);
-    }
+
+    // 移動結束後，全部熄滅
+    LedsDisplay(0x0000, 0);
   }
 }
+
 
 //雙點對稱跑馬燈：一開始左右兩端的兩顆燈亮起，以對稱的方式向中間移動，每次移動都保持兩顆燈的狀態，
 //當抵達中間時（或兩顆燈相鄰）再往返循環。
-void five(unsigned times)
-{  
-  for(int j = 0; j < times; j++){
+void five(unsigned times) {
+  for (int j = 0; j < times; j++) {
+    unsigned mask = 0;
 
-    for(int i = 1; i <= 7; i++){
-      
-      digitalWrite(leds[i], LOW);
-      digitalWrite(leds[i-1], LOW);
-      if(i != 7){
-        digitalWrite(leds[15-i-1], LOW);
-        digitalWrite(leds[15-i], LOW);
-        delay(600);
+    for (int i = 1; i <= 7; i++) {
+      // 左邊一對
+      mask |= (1u << i);
+      mask |= (1u << (i - 1));
+
+      // 右邊一對（對稱）
+      if (i != 7) {
+        mask |= (1u << (15 - i - 1));
+        mask |= (1u << (15 - i));
       }
-      digitalWrite(leds[i], HIGH);
-      digitalWrite(leds[i-1], HIGH);
-      if(i != 7){
-        digitalWrite(leds[15-i+1], HIGH);
-        digitalWrite(leds[15-i], HIGH);
+
+      LedsDisplay(mask, 600);
+
+      // 清掉這次加的燈，準備下一步
+      mask &= ~((1u << i) | (1u << (i - 1)));
+      if (i != 7) {
+        mask &= ~((1u << (15 - i - 1)) | (1u << (15 - i)));
       }
     }
   }
 }
+
 
 //一開始全部熄滅
 void begin()
 {
   for(int i = 0; i < NUM; i++){
-    digitalWrite(leds[i], HIGH);
+    LedsDisplay(0x0000, 0);
   }
 }
 
