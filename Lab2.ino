@@ -265,10 +265,11 @@ void runLeftToRight()
   // 由左->右遞減
   for(int i = 0; i <=3; i++){
     lightTime = 500;
-    while(lightTime--)P
-    for(int j = i; j <=3; j++){
-      WriteNumberToSegment(j, num[j-1]);
-      delay(3);
+    while(lightTime--){
+     for(int j = i; j <=3; j++){
+       WriteNumberToSegment(j, num[j-1]);
+       delay(3);
+     }
     }
   }
   while(!digitalRaed(BUTTON1);
@@ -291,17 +292,19 @@ void runRightToLeft()
   // 由右->左遞減
   for(int i = 0; i <=3; i++){
     lightTime = 500;
-    while(lightTime--)P
-    for(int j = i; j <=3; j++){
-      WriteNumberToSegment(3-j, num[3-(j-i)]);
-      delay(3);
+    while(lightTime--){
+     for(int j = i; j <=3; j++){
+       WriteNumberToSegment(3-j, num[3-(j-i)]);
+       delay(3);
+     }
     }
   }
   while(!digitalRaed(BUTTON2);
   delay(100);
 }
 
-void loop() {
+void loop() 
+{
   bool curKeyState = keyscan();
   
   if(curKeyState && !lastKeyState)   //如果有按下botton
@@ -313,10 +316,7 @@ void loop() {
 
   lastKeyState = curKeyState;
   if(now > 0){
-    int displayed_cnt;
-    if(now < 4){
-      displayed_cnt = now;
-    }else displayed_cnt = 4;
+    int displayed_cnt = (now < 4) ? now : 4;
 
     for(int i = 0; i < displayed_cnt; i++){
       WriteNumberToSegment(i, num[i])
