@@ -329,3 +329,91 @@ void loop()
     }
   }
 }
+
+void button1(){
+  int times;
+  for (int i = 3; i >=0; i--) {          //亮燈依序由左至右遞增
+        times = 300;
+        while (times--) {                   //讓它短時間重複閃爍300次
+          for (int j = 3; j >=i; j--) {
+            WriteNumberToSegment(j-i, num[j]);
+            delay(1);
+          }
+        }
+      }
+      for (int i = 1; i < 4; i++) {         //亮燈依序由左至右遞減
+        times = 300;
+        while (times--) {                   //讓它短時間重複閃爍300次
+          for (int j = i; j <=3 ; j++) {
+            WriteNumberToSegment(j, num[j-i]);
+            delay(1);
+          }
+        }
+      }
+      // 跑馬燈結束後繼續顯示原本的數字（不清空）
+      while(!digitalRead(BUTTON1));            //等待按鈕放開
+      delay(50);
+}
+
+void button2(){
+  int times;
+  for (int i = 3; i >=0; i--) {         //亮燈依序由右至左遞增
+        times = 300;
+        while (times--) {                    //讓它短時間重複閃爍300次
+          for (int j = 3; j >=i ; j--) {
+            WriteNumberToSegment(j, num[j-i]);
+            delay(1);
+          }
+        }
+      }
+
+      for (int i = 1; i < 4; i++) {         //亮燈依序由右至左遞減
+        times = 300;
+        while (times--) {                   //讓它短時間重複閃爍300次，像是持續亮
+          for (int j = i; j <=3 ; j++) {
+            WriteNumberToSegment(3-j, num[3-(j-i)]);
+            delay(1);
+          }
+        }
+      }
+      // 跑馬燈結束後繼續顯示原本的數字（不清空）
+      while(!digitalRead(BUTTON2));            //等待按鈕放開
+      delay(50);
+}
+void loop()
+{
+  // 持續掃描並顯示數字
+  bool currentKeyState = keyscan();
+  
+  // 偵測按鍵從「放開」到「按下」的瞬間（邊緣觸發）
+  if (currentKeyState && !lastKeyState) {
+    byte keyindex = (Row - 1) * 4 + Col;
+    addNumber(keyindex - 1);  // 加入新數字（會自動處理滾動）
+    
+    delay(50);  // 簡短的防彈跳延遲
+  }
+  
+  lastKeyState = currentKeyState;
+  
+  // 持續顯示目前的數字（如果有的話）
+  if (now > 0) {
+    int displayCount = (now < 4) ? now : 4;
+    for (int i = 0; i < displayCount; i++) {
+      WriteNumberToSegment(i, num[i]);
+      delayMicroseconds(500);  // 使用較短的延遲保持靈敏度
+    }
+  } else {
+    // 沒有數字時保持全暗
+    WriteNumberToSegment(4, 0);
+  }
+  
+  // 檢查跑馬燈按鈕（至少要有1個數字才能執行）
+  if (now >= 1) {
+    if (!digitalRead(BUTTON1)) {
+      button1();
+    }
+    if (!digitalRead(BUTTON2)) {
+      button2();
+    }
+  }
+}
