@@ -21,24 +21,12 @@ const byte DP = 0x40;   // Digit Point
 const byte SEGMENT_SELECT[] = {0x0E,0x0D,0x0B,0x07};
 
 // buffer[0]表示最左(新)，buffer[3]為最右(舊)，-1表示不顯示
-int buffer[4] = {-1, -1, -1, -1};
+int buffer[4] = {0, 0, 0, 0};
 static int bufPacked = 0xFFFF // 初始四個空白 0xF 0xF 0xF 0xF
 byte now = 0;
 bool lastKeyState = false;
 // 新增的數字塞到最左，往右推，最右的會被擠出去
-void pushLeft(byte digit)
-{
-  if(now < 4){
-    num[now] = digit;
-    now++;
-  }
-  else{
-    for(int i = 0; i <=3; i++){
-      num[i] = num[i+1];
-    }
-    num[3] = digit;
-  }
-}
+
 void setup() {
   pinMode(LATCH_DIO,  OUTPUT);
   pinMode(CLK_DIO,    OUTPUT);
@@ -61,7 +49,7 @@ void setup() {
   digitalWrite(A1,HIGH);
   digitalWrite(A2,HIGH);
   digitalWrite(A3,HIGH);
-
+/*
   // 啟動 LCD
   lcd.begin(16, 2);              // start the library
   lcd.setCursor(0,0); 
@@ -72,7 +60,9 @@ void setup() {
     lcd.clear();  //清除畫面
     delay(400);
   }
-} 
+*/
+}
+
 // display number to 7-segment  位置/值
 void WriteNumberToSegment(byte Segment, byte Value)
 {
@@ -81,88 +71,6 @@ void WriteNumberToSegment(byte Segment, byte Value)
     shiftOut(DATA_DIO, CLK_DIO, MSBFIRST, SEGMENT_MAP[Value]); // 先送段碼        
     shiftOut(DATA_DIO, CLK_DIO, MSBFIRST, SEGMENT_SELECT[Segment] ); // 再送位選
     digitalWrite(LATCH_DIO,HIGH);  // 鎖存拉高輸出
-}
-
-// 跑馬燈: 左->右
-void runLeftToRight()
-{
-  int lightTime;
-  for(int i = 3; i >= 0; i--){
-     lightTime = 500;
-     while(lightTime--){
-      for(int j = 3; j >= i; j--){
-        WriteNumberToSegment(j-1, num[j]);
-        delay(3);
-      }
-     }
-  }
-  // 由左->右遞減
-  for(int i = 0; i <=3; i++){
-    lightTime = 500;
-    while(lightTime--)P
-    for(int j = i; j <=3; j++){
-      WriteNumberToSegment(j, num[j-1]);
-      delay(3);
-    }
-  }
-  while(!digitalRaed(BUTTON1);
-  delay(100);
-}
-
-// 跑馬燈: 右->左
-void runRightToLeft()
-{
-  int lightTime;
-  for(int i = 3; i >= 0; i--){
-     lightTime = 500;
-     while(lightTime--){
-      for(int j = 3; j >= i; j--){
-        WriteNumberToSegment(j, num[j-1]);
-        delay(3);
-      }
-     }
-  }
-  // 由右->左遞減
-  for(int i = 0; i <=3; i++){
-    lightTime = 500;
-    while(lightTime--)P
-    for(int j = i; j <=3; j++){
-      WriteNumberToSegment(3-j, num[3-(j-i)]);
-      delay(3);
-    }
-  }
-  while(!digitalRaed(BUTTON2);
-  delay(100);
-}
-
-
-
-void loop() {
-  bool = curKeyState = keyscan();
-  
-  static int keypressedcount=0;  //計數器
-  byte keyindex=0;  //對應 KeyValue的索引值
-  if(keyscan()==true)   //如果有按下botton
-  {
-    keyindex=(Row-1) * 4 + Col; //選到正確的索引值
-    delay(5);
-    if ((keyscan()==true)) 
-    {
-      lcd.clear();  //確保畫面沒有東西
-      lcd.setCursor(0,0);
-      lcd.print("Row=");lcd.print(Row);
-      lcd.print(",Col=");lcd.print(Col);
-      lcd.setCursor(0,1);
-      lcd.print(KeyValue[keyindex-1]);
-      digitalWrite(A0,LOW);
-      digitalWrite(A1,LOW);
-      digitalWrite(A2,LOW);
-      digitalWrite(A3,LOW);
-      delayMicroseconds(100);
-      while( (digitalRead(2)==LOW) || (digitalRead(3)==LOW))
-        ;  
-    }
-  } 
 }
 
 bool keyscan( )
@@ -327,5 +235,98 @@ bool keyscan( )
   return(false);
 }
 
+void pushNum(byte digit)
+{
+  if(now < 4){
+    num[now] = digit;
+    now++;
+  }
+  else{
+    for(int i = 0; i <=3; i++){
+      num[i] = num[i+1];
+    }
+    num[3] = digit;
+  }
+}
 
+// 跑馬燈: 左->右
+void runLeftToRight()
+{
+  int lightTime;
+  for(int i = 3; i >= 0; i--){
+     lightTime = 500;
+     while(lightTime--){
+      for(int j = 3; j >= i; j--){
+        WriteNumberToSegment(j-1, num[j]);
+        delay(3);
+      }
+     }
+  }
+  // 由左->右遞減
+  for(int i = 0; i <=3; i++){
+    lightTime = 500;
+    while(lightTime--)P
+    for(int j = i; j <=3; j++){
+      WriteNumberToSegment(j, num[j-1]);
+      delay(3);
+    }
+  }
+  while(!digitalRaed(BUTTON1);
+  delay(100);
+}
 
+// 跑馬燈: 右->左
+void runRightToLeft()
+{
+  int lightTime;
+  for(int i = 3; i >= 0; i--){
+     lightTime = 500;
+     while(lightTime--){
+      for(int j = 3; j >= i; j--){
+        WriteNumberToSegment(j, num[j-1]);
+        delay(3);
+      }
+     }
+  }
+  // 由右->左遞減
+  for(int i = 0; i <=3; i++){
+    lightTime = 500;
+    while(lightTime--)P
+    for(int j = i; j <=3; j++){
+      WriteNumberToSegment(3-j, num[3-(j-i)]);
+      delay(3);
+    }
+  }
+  while(!digitalRaed(BUTTON2);
+  delay(100);
+}
+
+void loop() {
+  bool curKeyState = keyscan();
+  
+  if(curKeyState && !lastKeyState)   //如果有按下botton
+  {
+    byte keyindex = (Row-1) *4 + Col;
+    pushNum(keyindex - 1);
+    delay(100;)
+  } 
+
+  lastKeyState = curKeyState;
+  if(now > 0){
+    int displayed_cnt;
+    if(now < 4){
+      displayed_cnt = now;
+    }else displayed_cnt = 4;
+
+    for(int i = 0; i < displayed_cnt; i++){
+      WriteNumberToSegment(i, num[i])
+      delayMicroseconds(500);
+    }
+  }else{
+    WriteNumberToSegment(4, 0);
+    if(now >= 1){
+      if(!digitalRead(BUTTON1)) runLeftToRight();
+      if(!digitalRead(BUTTON2)) runRightToLeft();
+    }
+  }
+}
