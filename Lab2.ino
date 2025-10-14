@@ -17,10 +17,10 @@ byte Row=0, Col=0;  // 儲存掃描到的row & col
 const byte SEGMENT_MAP[] = {0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0X7F,0X6F,0X77,0X7C,0X39};
 const byte DP = 0x40;   // Digit Point
 
- // E: 1110  D: 1101  B: 1011   7: 0111  // position
+// E: 1110(最左邊亮)  D: 1101  B: 1011   7: 0111(最右邊亮)    // position
 const byte SEGMENT_SELECT[] = {0x0E,0x0D,0x0B,0x07};
 
-// num[0]表示最左(新)，num[3]為最右(舊)，-1表示不顯示
+// num[0]表示最左(新)，num[3]為最右(舊)
 int num[4] = {0, 0, 0, 0};
 byte now = 0;
 bool lastKeyState = false;
@@ -234,104 +234,103 @@ bool keyscan( )
   return(false);
 }
 
-void addNumber(byte digit)
+void pushNum(byte digit)
 {
   if(now < 4){
-    num[now] = digit;
-    now++;
+    num[now++] = digit;
   }
-  else{
-    for(int i = 0; i <=3; i++){
-      num[i] = num[i+1];
+  else{ // 如果num陣列已經超過4個數字
+    for(int i = 0; i <=2; i++){   //原本寫i<=3，但只要做三次迴圈即可，所以是i<=2
+      num[i] = num[i+1];          //把左邊的數往右移一格
     }
-    num[3] = digit;
+    num[3] = digit; //最後最左的數字=輸入的數字
   }
 }
 
-void button1(){
-  int times;
-  for (int i = 3; i >=0; i--) {          //亮燈依序由左至右遞增
-        times = 300;
-        while (times--) {                   //讓它短時間重複閃爍300次
-          for (int j = 3; j >=i; j--) {
+void l_to_r(){
+  int time;
+  // 由左往右亮出
+  for (int i = 3; i >=0; i--) {  
+        time = 500;
+        while (time--) { //重複閃爍
+          for (int j = 3; j >=i; j--) {  // i=3, j=2時，不符條件，跳過
             WriteNumberToSegment(j-i, num[j]);
-            delay(1);
+            delay(3);
           }
         }
       }
-      for (int i = 1; i < 4; i++) {         //亮燈依序由左至右遞減
-        times = 300;
-        while (times--) {                   //讓它短時間重複閃爍300次
-          for (int j = i; j <=3 ; j++) {
-            WriteNumberToSegment(j, num[j-i]);
-            delay(1);
+      // 由左往右飛出 
+      for (int i = 1; i <=3; i++) { // i 代表往右的偏移量
+        time = 500;
+        while (time--) { //重複閃爍
+          //假設num={1,2,3,4}
+          for (int j = i; j <=3 ; j++) {  //第一次迴圈: i = 1, j = 1,2,3
+            WriteNumberToSegment(j, num[j-i]); //pos 1(第二格亮) <- num[0]=1 
+            delay(3);
           }
         }
       }
       // 跑馬燈結束後繼續顯示原本的數字（不清空）
       while(!digitalRead(BUTTON1));            //等待按鈕放開
-      delay(50);
+      delay(200);
 }
 
-void button2(){
-  int times;
-  for (int i = 3; i >=0; i--) {         //亮燈依序由右至左遞增
-        times = 300;
-        while (times--) {                    //讓它短時間重複閃爍300次
+void r_to_l(){
+  int time;
+  // 由右往左亮出
+  for (int i = 3; i >=0; i--) { 
+        time = 500;
+        while (time--) {
           for (int j = 3; j >=i ; j--) {
             WriteNumberToSegment(j, num[j-i]);
-            delay(1);
+            delay(3);
           }
         }
       }
-
-      for (int i = 1; i < 4; i++) {         //亮燈依序由右至左遞減
-        times = 300;
-        while (times--) {                   //讓它短時間重複閃爍300次，像是持續亮
+       // 由右往左飛出
+      for (int i = 1; i <=3; i++) { 
+        time = 500;
+        while (time--) {                  
           for (int j = i; j <=3 ; j++) {
             WriteNumberToSegment(3-j, num[3-(j-i)]);
-            delay(1);
+            delay(3);
           }
         }
       }
-      // 跑馬燈結束後繼續顯示原本的數字（不清空）
-      while(!digitalRead(BUTTON2));            //等待按鈕放開
-      delay(50);
+      // 持續顯示數字
+      while(!digitalRead(BUTTON2));
+      delay(200);
 }
 void loop()
 {
   // 持續掃描並顯示數字
-  bool currentKeyState = keyscan();
+  bool curKeyState = keyscan();
   
-  // 偵測按鍵從「放開」到「按下」的瞬間（邊緣觸發）
-  if (currentKeyState && !lastKeyState) {
+  if (curKeyState && !lastKeyState) {
     byte keyindex = (Row - 1) * 4 + Col;
-    addNumber(keyindex - 1);  // 加入新數字（會自動處理滾動）
+    pushNum(keyindex - 1);
     
-    delay(50);  // 簡短的防彈跳延遲
+    delay(50);
   }
   
-  lastKeyState = currentKeyState;
+  lastKeyState = curKeyState;
   
-  // 持續顯示目前的數字（如果有的話）
   if (now > 0) {
-    int displayCount = (now < 4) ? now : 4;
-    for (int i = 0; i < displayCount; i++) {
+    int displayCnt = (now < 4) ? now : 4;
+    for (int i = 0; i < displayCnt; i++) {
       WriteNumberToSegment(i, num[i]);
-      delayMicroseconds(500);  // 使用較短的延遲保持靈敏度
+      delayMicroseconds(500);  
     }
   } else {
-    // 沒有數字時保持全暗
     WriteNumberToSegment(4, 0);
   }
   
-  // 檢查跑馬燈按鈕（至少要有1個數字才能執行）
   if (now >= 1) {
     if (!digitalRead(BUTTON1)) {
-      button1();
+      l_to_r();
     }
     if (!digitalRead(BUTTON2)) {
-      button2();
+      r_to_l();
     }
   }
 }
