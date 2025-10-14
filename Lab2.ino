@@ -20,9 +20,8 @@ const byte DP = 0x40;   // Digit Point
  // E: 1110  D: 1101  B: 1011   7: 0111  // position
 const byte SEGMENT_SELECT[] = {0x0E,0x0D,0x0B,0x07};
 
-// buffer[0]表示最左(新)，buffer[3]為最右(舊)，-1表示不顯示
-int buffer[4] = {0, 0, 0, 0};
-static int bufPacked = 0xFFFF // 初始四個空白 0xF 0xF 0xF 0xF
+// num[0]表示最左(新)，num[3]為最右(舊)，-1表示不顯示
+int num[4] = {0, 0, 0, 0};
 byte now = 0;
 bool lastKeyState = false;
 // 新增的數字塞到最左，往右推，最右的會被擠出去
@@ -272,7 +271,7 @@ void runLeftToRight()
      }
     }
   }
-  while(!digitalRaed(BUTTON1);
+  while(!digitalRead(BUTTON1));
   delay(100);
 }
 
@@ -281,13 +280,13 @@ void runRightToLeft()
 {
   int lightTime;
   for(int i = 3; i >= 0; i--){
-     lightTime = 500;
-     while(lightTime--){
-      for(int j = 3; j >= i; j--){
-        WriteNumberToSegment(j, num[j-1]);
-        delay(3);
-      }
-     }
+   lightTime = 500;
+   while(lightTime--){
+    for(int j = 3; j >= i; j--){
+      WriteNumberToSegment(j, num[j-1]);
+      delay(3);
+    }
+   }
   }
   // 由右->左遞減
   for(int i = 0; i <=3; i++){
@@ -299,7 +298,7 @@ void runRightToLeft()
      }
     }
   }
-  while(!digitalRaed(BUTTON2);
+  while(!digitalRead(BUTTON2));
   delay(100);
 }
 
@@ -311,7 +310,7 @@ void loop()
   {
     byte keyindex = (Row-1) *4 + Col;
     pushNum(keyindex - 1);
-    delay(100;)
+    delay(100);
   } 
 
   lastKeyState = curKeyState;
@@ -319,7 +318,7 @@ void loop()
     int displayed_cnt = (now < 4) ? now : 4;
 
     for(int i = 0; i < displayed_cnt; i++){
-      WriteNumberToSegment(i, num[i])
+      WriteNumberToSegment(i, num[i]);
       delayMicroseconds(500);
     }
   }else{
