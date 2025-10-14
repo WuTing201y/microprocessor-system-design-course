@@ -1,7 +1,15 @@
-#include <LiquidCrystal.h>
+#define LATCH_DIO D15   
+#define CLK_DIO D14
+#define DATA_DIO 2        // D2 is OK, too
+#define BUTTON1 BT1
+#define BUTTON2 BT2
+#define BUTTON3 BT3
+#define BUTTON4 BT4
+#define BUTTON_A0 A0
+#define BUTTON_A1 A1
+#define BUTTON_A2 A2
+#define BUTTON_A3 A3
 
-
-LiquidCrystal lcd();
 char KeyValue[]={'1','2','3','A','4','5','6','B','7','8','9','C','*','0','#','D'};
 byte Row=0, Col=0;  // 儲存掃描到的row & col
 
@@ -15,43 +23,22 @@ const byte SEGMENT_SELECT[] = {0x0E,0x0D,0x0B,0x07};
 // buffer[0]表示最左(新)，buffer[3]為最右(舊)，-1表示不顯示
 int buffer[4] = {-1, -1, -1, -1};
 static int bufPacked = 0xFFFF // 初始四個空白 0xF 0xF 0xF 0xF
-
-// display number to 7-segment  位置/值
-void WriteNumberToSegment(byte Segment, byte Value)
-{
-    digitalWrite(LATCH_DIO, LOW); // 鎖存拉低準備送資料
-    // MAP first and then SELECT. !!!CANNOT CHANGE THE ORDER!!!
-    shiftOut(DATA_DIO, CLK_DIO, MSBFIRST, SEGMENT_MAP[Value]); // 先送段碼        
-    shiftOut(DATA_DIO, CLK_DIO, MSBFIRST, SEGMENT_SELECT[Segment] ); // 再送位選
-    digitalWrite(LATCH_DIO,HIGH);  // 鎖存拉高輸出
-}
-
+byte now = 0;
+bool lastKeyState = false;
 // 新增的數字塞到最左，往右推，最右的會被擠出去
-void pushLeft(int digit)
+void pushLeft(byte digit)
 {
-  int d = digit & 0xF;
-  bufPacked = (bufPacked >> 4) | (d <<12);
-}
-
-// 跑馬燈: 左->右
-void runLeftToRight()
-{
-  int seq[4];
-  for(int i = 0; i<4; i++) seq[i]=buffer[i];
-
-  for(int k = 0; k < 4; k++){
-    int tmp = seq[k]; //檢查buffer裡是否都有數字
-    if (tmp < 0) continue; // 如果空白就略過
-
-    for(int pos = 0; pos <= 4; pos++){ //若pos=4代表會飛出
-      int frame
-    }
+  if(now < 4){
+    num[now] = digit;
+    now++;
   }
-
-
+  else{
+    for(int i = 0; i <=3; i++){
+      num[i] = num[i+1];
+    }
+    num[3] = digit;
+  }
 }
-
-
 void setup() {
   pinMode(LATCH_DIO,  OUTPUT);
   pinMode(CLK_DIO,    OUTPUT);
@@ -86,8 +73,73 @@ void setup() {
     delay(400);
   }
 } 
+// display number to 7-segment  位置/值
+void WriteNumberToSegment(byte Segment, byte Value)
+{
+    digitalWrite(LATCH_DIO, LOW); // 鎖存拉低準備送資料
+    // MAP first and then SELECT. !!!CANNOT CHANGE THE ORDER!!!
+    shiftOut(DATA_DIO, CLK_DIO, MSBFIRST, SEGMENT_MAP[Value]); // 先送段碼        
+    shiftOut(DATA_DIO, CLK_DIO, MSBFIRST, SEGMENT_SELECT[Segment] ); // 再送位選
+    digitalWrite(LATCH_DIO,HIGH);  // 鎖存拉高輸出
+}
+
+// 跑馬燈: 左->右
+void runLeftToRight()
+{
+  int lightTime;
+  for(int i = 3; i >= 0; i--){
+     lightTime = 500;
+     while(lightTime--){
+      for(int j = 3; j >= i; j--){
+        WriteNumberToSegment(j-1, num[j]);
+        delay(3);
+      }
+     }
+  }
+  // 由左->右遞減
+  for(int i = 0; i <=3; i++){
+    lightTime = 500;
+    while(lightTime--)P
+    for(int j = i; j <=3; j++){
+      WriteNumberToSegment(j, num[j-1]);
+      delay(3);
+    }
+  }
+  while(!digitalRaed(BUTTON1);
+  delay(100);
+}
+
+// 跑馬燈: 右->左
+void runRightToLeft()
+{
+  int lightTime;
+  for(int i = 3; i >= 0; i--){
+     lightTime = 500;
+     while(lightTime--){
+      for(int j = 3; j >= i; j--){
+        WriteNumberToSegment(j, num[j-1]);
+        delay(3);
+      }
+     }
+  }
+  // 由右->左遞減
+  for(int i = 0; i <=3; i++){
+    lightTime = 500;
+    while(lightTime--)P
+    for(int j = i; j <=3; j++){
+      WriteNumberToSegment(3-j, num[3-(j-i)]);
+      delay(3);
+    }
+  }
+  while(!digitalRaed(BUTTON2);
+  delay(100);
+}
+
+
 
 void loop() {
+  bool = curKeyState = keyscan();
+  
   static int keypressedcount=0;  //計數器
   byte keyindex=0;  //對應 KeyValue的索引值
   if(keyscan()==true)   //如果有按下botton
@@ -274,7 +326,6 @@ bool keyscan( )
   }
   return(false);
 }
-
 
 
 
