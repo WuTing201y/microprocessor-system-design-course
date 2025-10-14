@@ -234,7 +234,7 @@ bool keyscan( )
   return(false);
 }
 
-void pushNum(byte digit)
+void addNumber(byte digit)
 {
   if(now < 4){
     num[now] = digit;
@@ -245,88 +245,6 @@ void pushNum(byte digit)
       num[i] = num[i+1];
     }
     num[3] = digit;
-  }
-}
-
-// 跑馬燈: 左->右
-void runLeftToRight()
-{
-  int lightTime;
-  for(int i = 3; i >= 0; i--){
-     lightTime = 500;
-     while(lightTime--){
-      for(int j = 3; j >= i; j--){
-        WriteNumberToSegment(j-1, num[j]);
-        delay(3);
-      }
-     }
-  }
-  // 由左->右遞減
-  for(int i = 0; i <=3; i++){
-    lightTime = 500;
-    while(lightTime--){
-     for(int j = i; j <=3; j++){
-       WriteNumberToSegment(j, num[j-1]);
-       delay(3);
-     }
-    }
-  }
-  while(!digitalRead(BUTTON1));
-  delay(100);
-}
-
-// 跑馬燈: 右->左
-void runRightToLeft()
-{
-  int lightTime;
-  for(int i = 3; i >= 0; i--){
-   lightTime = 500;
-   while(lightTime--){
-    for(int j = 3; j >= i; j--){
-      WriteNumberToSegment(j, num[j-1]);
-      delay(3);
-    }
-   }
-  }
-  // 由右->左遞減
-  for(int i = 0; i <=3; i++){
-    lightTime = 500;
-    while(lightTime--){
-     for(int j = i; j <=3; j++){
-       WriteNumberToSegment(3-j, num[3-(j-i)]);
-       delay(3);
-     }
-    }
-  }
-  while(!digitalRead(BUTTON2));
-  delay(100);
-}
-
-void loop() 
-{
-  bool curKeyState = keyscan();
-  
-  if(curKeyState && !lastKeyState)   //如果有按下botton
-  {
-    byte keyindex = (Row-1) *4 + Col;
-    pushNum(keyindex - 1);
-    delay(100);
-  } 
-
-  lastKeyState = curKeyState;
-  if(now > 0){
-    int displayed_cnt = (now < 4) ? now : 4;
-
-    for(int i = 0; i < displayed_cnt; i++){
-      WriteNumberToSegment(i, num[i]);
-      delayMicroseconds(500);
-    }
-  }else{
-    WriteNumberToSegment(4, 0);
-    if(now >= 1){
-      if(!digitalRead(BUTTON1)) runLeftToRight();
-      if(!digitalRead(BUTTON2)) runRightToLeft();
-    }
   }
 }
 
