@@ -270,8 +270,8 @@ void l_to_r(){
           }
         }
       }
-      // 跑馬燈結束後繼續顯示原本的數字（不清空）
-      while(!digitalRead(BUTTON1));            //等待按鈕放開
+      // 跑完跑馬燈之後不清空，持續顯示數字
+      while(!digitalRead(BUTTON1));
       delay(200);
 }
 
@@ -297,19 +297,17 @@ void r_to_l(){
           }
         }
       }
-      // 持續顯示數字
+      // 跑完跑馬燈之後不清空，持續顯示數字
       while(!digitalRead(BUTTON2));
       delay(200);
 }
 void loop()
 {
-  // 持續掃描並顯示數字
-  bool curKeyState = keyscan();
+  bool curKeyState = keyscan();  // 掃描看有沒有數字輸入
   
   if (curKeyState && !lastKeyState) {
     byte keyindex = (Row - 1) * 4 + Col;
     pushNum(keyindex - 1);
-    
     delay(50);
   }
   
