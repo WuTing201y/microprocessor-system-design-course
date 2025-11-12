@@ -24,6 +24,12 @@ int high[] = { 1046, 1175, 1318, 1397, 1568, 1760, 1976, 2092 };
 int middle[] = { 523, 587, 659, 698, 784, 880, 988, 1046 };
 int low[] = { 261, 294, 330, 349, 392, 440, 494, 523 };
 //=========================================
+int tones[3][7] = {
+                  {1046, 1175, 1318, 1397, 1568, 1760, 1976},
+                  {523, 587, 659, 698, 784, 880, 988},
+                  {261, 294, 330, 349, 392, 440, 494} 
+                 };
+int toneflag = 0;  //0=high, 1=middle, 2=low
 void b1()
 {
   lcd.setCursor(0,0);
@@ -31,7 +37,7 @@ void b1()
   lcd.setCursor(0,0);
   lcd.print(names[0]);
   lcd.noCursor();
-  tone(speakerPin, middle[0], tempo);
+  tone(speakerPin, tones[toneflag][0], tempo);
   delay(tempo);
   noTone(speakerPin);
 }
@@ -42,7 +48,7 @@ void b2()
   lcd.setCursor(0,0);
   lcd.print(names[1]);
   lcd.noCursor();
-  tone(speakerPin, middle[1], tempo);
+  tone(speakerPin, tones[toneflag][1], tempo);
   delay(tempo);
   noTone(speakerPin);
 }
@@ -53,7 +59,7 @@ void b3()
   lcd.setCursor(0,0);
   lcd.print(names[2]);
   lcd.noCursor();
-  tone(speakerPin, middle[2], tempo);
+  tone(speakerPin, tones[toneflag][2], tempo);
   delay(tempo);
   noTone(speakerPin);
 }
@@ -64,7 +70,7 @@ void b4()
   lcd.setCursor(0,0);
   lcd.print(names[3]);
   lcd.noCursor();
-  tone(speakerPin, middle[3], tempo);
+  tone(speakerPin, tones[toneflag][3], tempo);
   delay(tempo);
   noTone(speakerPin);
 }
@@ -75,7 +81,7 @@ void b5()
   lcd.setCursor(0,0);
   lcd.print(names[4]);
   lcd.noCursor();
-  tone(speakerPin, middle[4], tempo);
+  tone(speakerPin, tones[toneflag][4], tempo);
   delay(tempo);
   noTone(speakerPin);
 }
@@ -86,7 +92,7 @@ void b6()
   lcd.setCursor(0,0);
   lcd.print(names[5]);
   lcd.noCursor();
-  tone(speakerPin, middle[5], tempo);
+  tone(speakerPin, tones[toneflag][5], tempo);
   delay(tempo);
   noTone(speakerPin);
 }
@@ -97,11 +103,37 @@ void b7()
   lcd.setCursor(0,0);
   lcd.print(names[6]);
   lcd.noCursor();
-  tone(speakerPin, middle[6], tempo);
+  tone(speakerPin, tones[toneflag][6], tempo);
   delay(tempo);
   noTone(speakerPin);
 }
-
+void bA()
+{
+  toneflag = 0;
+  lcd.setCursor(0,0);
+  lcd.print("                ");
+  lcd.setCursor(0,0);
+  lcd.print("            High");
+  lcd.noCursor();
+}
+void bB()
+{
+  toneflag = 1;
+  lcd.setCursor(0,0);
+  lcd.print("                ");
+  lcd.setCursor(0,0);
+  lcd.print("          Middle");
+  lcd.noCursor();
+}
+void bC()
+{
+  toneflag = 2;
+  lcd.setCursor(0,0);
+  lcd.print("                ");
+  lcd.setCursor(0,0);
+  lcd.print("             Low");
+  lcd.noCursor();
+}
 void setup() {
   pinMode(speakerPin, OUTPUT);
 
@@ -156,6 +188,9 @@ void loop()
         if(pressKey == '5') b5();
         if(pressKey == '6') b6();
         if(pressKey == '7') b7();
+        if(pressKey == 'A') bA();
+        if(pressKey == 'B') bB();
+        if(pressKey == 'C') bC();
     }
   } 
 }
