@@ -29,13 +29,25 @@ int tones[3][7] = {
                   {523, 587, 659, 698, 784, 880, 988},
                   {261, 294, 330, 349, 392, 440, 494} 
                  };
-int toneflag = 0;  //0=high, 1=middle, 2=low
+int toneflag = -1;  //0=high, 1=middle, 2=low
+
 void b1()
 {
   lcd.setCursor(0,0);
   lcd.print("                ");
   lcd.setCursor(0,0);
   lcd.print(names[0]);
+  if(toneflag == 0){
+    
+    lcd.print("          High");
+  }else if(toneflag == 1){
+    
+    lcd.print("        Middle");
+  }
+  else if(toneflag == 2){
+    
+    lcd.print("           Low");
+  }
   lcd.noCursor();
   tone(speakerPin, tones[toneflag][0], tempo);
   delay(tempo);
