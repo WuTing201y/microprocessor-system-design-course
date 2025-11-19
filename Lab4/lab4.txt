@@ -40,12 +40,12 @@ int recording_notes[maxlen];  //紀錄錄音的音符
 int recording_tone[maxlen]; //紀錄錄音的音調
 
 // ======== 各種函數===========
-void b1() // 音調: Do
+void playTone(int noteIndex)
 {
   lcd.setCursor(0,0); //設游標在(0,0)位置
   lcd.print("                "); // 先清空第一行，用寫入16個空白做到
   lcd.setCursor(0,0); //再把游標設回(0,0)位置
-  lcd.print(names[0]); //寫入第一個音調名稱 Do
+  lcd.print(names[noteIndex]); // 顯示音符名稱
   
   if(toneflag == 0){ //如果目前選擇高音
     lcd.print("          High");  //第一行最後面輸出High
@@ -55,194 +55,17 @@ void b1() // 音調: Do
   else if(toneflag == 2){ //如果目前選擇低音
     lcd.print("           Low"); //第一行最後面輸出Low
   }
-  
-  lcd.noCursor(); //不顯示游標
+  lcd.noCursor(); // 不顯示游標
   // tone(哪個腳位發聲, 發出什麼聲, 發出多久時間)
-  tone(speakerPin, tones[toneflag][0], tempo); //發出[哪個音調][Do的音符]
+  tone(speakerPin, tones[toneflag][noteIndex], tempo);  //發出[哪個音調][哪個音符]
   delay(tempo); // 延遲一點時間
-  noTone(speakerPin);   //停止發出聲音
+  noTone(speakerPin); //停止發出聲音
 
-  //如果正在錄音，記錄這個音符(note)
-  if(isRecording && recording_index < maxlen) //如果正在錄音且錄音的索引沒有超過設定的最大長度
-  {
-    recording_notes[recording_index] = 0;     //音符在錄音音符陣列索引裡的位置上是0，因為是Do
-    recording_tone[recording_index] = toneflag; // 將目前的錄音索引放入音調的陣列裡，並在裡面寫上目前的音調
+  // 如果正在錄音，記錄音符
+  if(isRecording && recording_index < maxlen) { //如果正在錄音且錄音的索引沒有超過設定的最大長度
+    recording_notes[recording_index] = noteIndex;  //音符在錄音音符陣列索引裡的位置上是哪個
+    recording_tone[recording_index] = toneflag;  // 將目前的錄音索引放入音調的陣列裡，並在裡面寫上目前的音調
     recording_index++; //錄音索引+1
-  }
-}
-// b2~b7與b1邏輯相同
-void b2()
-{
-  lcd.setCursor(0,0);
-  lcd.print("                ");
-  lcd.setCursor(0,0);
-  lcd.print(names[1]);
-
-  if(toneflag == 0){ //如果目前選擇高音
-    lcd.print("          High");  //第一行最後面輸出High
-  }else if(toneflag == 1){ //如果目前選擇中音
-    lcd.print("        Middle"); //第一行最後面輸出Middle
-  }
-  else if(toneflag == 2){ //如果目前選擇低音
-    lcd.print("           Low"); //第一行最後面輸出Low
-  }
-    
-  lcd.noCursor();
-  tone(speakerPin, tones[toneflag][1], tempo);
-  delay(tempo);
-  noTone(speakerPin);
-
-  //如果正在錄音，記錄這個音符(note)
-  if(isRecording && recording_index < maxlen)
-  {
-    recording_notes[recording_index] = 1;
-    recording_tone[recording_index] = toneflag;
-    recording_index++;
-  }
-}
-void b3()
-{
-  lcd.setCursor(0,0);
-  lcd.print("                ");
-  lcd.setCursor(0,0);
-  lcd.print(names[2]);
-
-  if(toneflag == 0){ //如果目前選擇高音
-    lcd.print("          High");  //第一行最後面輸出High
-  }else if(toneflag == 1){ //如果目前選擇中音
-    lcd.print("        Middle"); //第一行最後面輸出Middle
-  }
-  else if(toneflag == 2){ //如果目前選擇低音
-    lcd.print("           Low"); //第一行最後面輸出Low
-  }
-  
-  lcd.noCursor();
-  tone(speakerPin, tones[toneflag][2], tempo);
-  delay(tempo);
-  noTone(speakerPin);
-
-  //如果正在錄音，記錄這個音符(note)
-  if(isRecording && recording_index < maxlen)
-  {
-    recording_notes[recording_index] = 2;
-    recording_tone[recording_index] = toneflag;
-    recording_index++;
-  }
-}
-void b4()
-{
-  lcd.setCursor(0,0);
-  lcd.print("                ");
-  lcd.setCursor(0,0);
-  lcd.print(names[3]);
-
-  if(toneflag == 0){ //如果目前選擇高音
-    lcd.print("          High");  //第一行最後面輸出High
-  }else if(toneflag == 1){ //如果目前選擇中音
-    lcd.print("        Middle"); //第一行最後面輸出Middle
-  }
-  else if(toneflag == 2){ //如果目前選擇低音
-    lcd.print("           Low"); //第一行最後面輸出Low
-  }
-  
-  lcd.noCursor();
-  tone(speakerPin, tones[toneflag][3], tempo);
-  delay(tempo);
-  noTone(speakerPin);
-
-  //如果正在錄音，記錄這個音符(note)
-  if(isRecording && recording_index < maxlen)
-  {
-    recording_notes[recording_index] = 3;
-    recording_tone[recording_index] = toneflag;
-    recording_index++;
-  }
-}
-void b5()
-{
-  lcd.setCursor(0,0);
-  lcd.print("                ");
-  lcd.setCursor(0,0);
-  lcd.print(names[4]);
-
-  if(toneflag == 0){ //如果目前選擇高音
-    lcd.print("          High");  //第一行最後面輸出High
-  }else if(toneflag == 1){ //如果目前選擇中音
-    lcd.print("        Middle"); //第一行最後面輸出Middle
-  }
-  else if(toneflag == 2){ //如果目前選擇低音
-    lcd.print("           Low"); //第一行最後面輸出Low
-  }
-  
-  lcd.noCursor();
-  tone(speakerPin, tones[toneflag][4], tempo);
-  delay(tempo);
-  noTone(speakerPin);
-
-  //如果正在錄音，記錄這個音符(note)
-  if(isRecording && recording_index < maxlen)
-  {
-    recording_notes[recording_index] = 4;
-    recording_tone[recording_index] = toneflag;
-    recording_index++;
-  }
-}
-void b6()
-{
-  lcd.setCursor(0,0);
-  lcd.print("                ");
-  lcd.setCursor(0,0);
-  lcd.print(names[5]);
-
-  if(toneflag == 0){ //如果目前選擇高音
-    lcd.print("          High");  //第一行最後面輸出High
-  }else if(toneflag == 1){ //如果目前選擇中音
-    lcd.print("        Middle"); //第一行最後面輸出Middle
-  }
-  else if(toneflag == 2){ //如果目前選擇低音
-    lcd.print("           Low"); //第一行最後面輸出Low
-  }
-  
-  lcd.noCursor();
-  tone(speakerPin, tones[toneflag][5], tempo);
-  delay(tempo);
-  noTone(speakerPin);
-
-  //如果正在錄音，記錄這個音符(note)
-  if(isRecording && recording_index < maxlen)
-  {
-    recording_notes[recording_index] = 5;
-    recording_tone[recording_index] = toneflag;
-    recording_index++;
-  }
-}
-void b7()
-{
-  lcd.setCursor(0,0);
-  lcd.print("                ");
-  lcd.setCursor(0,0);
-  lcd.print(names[6]);
-
-  if(toneflag == 0){ //如果目前選擇高音
-    lcd.print("          High");  //第一行最後面輸出High
-  }else if(toneflag == 1){ //如果目前選擇中音
-    lcd.print("        Middle"); //第一行最後面輸出Middle
-  }
-  else if(toneflag == 2){ //如果目前選擇低音
-    lcd.print("           Low"); //第一行最後面輸出Low
-  }
-  
-  lcd.noCursor();
-  tone(speakerPin, tones[toneflag][6], tempo);
-  delay(tempo);
-  noTone(speakerPin);
-
-  //如果正在錄音，記錄這個音符(note)
-  if(isRecording && recording_index < maxlen)
-  {
-    recording_notes[recording_index] = 6;
-    recording_tone[recording_index] = toneflag;
-    recording_index++;
   }
 }
 void bA()
@@ -277,7 +100,10 @@ void BTN1() //開始錄音
   isRecording = true;
   recording_index = 0;
   hasRecording = false;
-
+  
+  lcd.setCursor(0,0);
+  lcd.print("                ");
+  
   lcd.setCursor(0,1);
   lcd.print("                ");
   lcd.setCursor(0,1);
@@ -290,6 +116,9 @@ void BTN2() //停止錄音
     isRecording = false;
     hasRecording = true;
 
+    lcd.setCursor(0,0);
+    lcd.print("                ");
+    
     lcd.setCursor(0,1);
     lcd.print("                ");
     lcd.setCursor(0,1);
@@ -334,6 +163,7 @@ void BTN4() //播放預錄歌曲
   lcd.setCursor(0,0);
   lcd.print("Two Tigers");
   lcd.noCursor();
+  delay(tempo*2);
 
     // 顯示音符名稱
   lcd.setCursor(0,1);
@@ -356,9 +186,9 @@ void BTN4() //播放預錄歌曲
         delay(tempo);
         noTone(speakerPin);
 
-        lcd.setCursor(0,0);
+        lcd.setCursor(0,1);
         lcd.print("                ");
-        lcd.setCursor(0,0);
+        lcd.setCursor(0,1);
         lcd.print(names[song_note_idx]);
         lcd.noCursor();
       }      
@@ -454,13 +284,13 @@ void loop()
                (digitalRead(12)==LOW) || (digitalRead(13)==LOW))
           ; 
         
-        if(pressKey == '1') b1();
-        if(pressKey == '2') b2();
-        if(pressKey == '3') b3();
-        if(pressKey == '4') b4();
-        if(pressKey == '5') b5();
-        if(pressKey == '6') b6();
-        if(pressKey == '7') b7();
+        if(pressKey == '1') playTone(0);
+        if(pressKey == '2') playTone(1);
+        if(pressKey == '3') playTone(2);
+        if(pressKey == '4') playTone(3);
+        if(pressKey == '5') playTone(4);
+        if(pressKey == '6') playTone(5);
+        if(pressKey == '7') playTone(6);
         if(pressKey == 'A') bA();
         if(pressKey == 'B') bB();
         if(pressKey == 'C') bC();
