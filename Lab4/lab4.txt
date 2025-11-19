@@ -11,11 +11,11 @@ byte Row=0, Col=0;
 int speakerPin = D3;
 
 // ======預錄歌曲=======
-char song_notes[] = "ccggaagffeeddc "; // 依照簡譜的順序，填入代表的音符，空白代表休止符
+char song_notes[] = "cdeccdecefgefg "; // 依照簡譜的順序，填入代表的音符，空白代表休止符
 // 決定每個音階的拍子，注意這邊用 unsigned long 所以拍子只能是正整數
-unsigned long song_beats[] = {1,1,1,1,1,1,2,1,1,1,1,1,1,2,4};
+unsigned long song_beats[] = {1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,2};
 // 利用 sizeof()，算出總共要多少音符
-int slong_len = sizeof(song_notes);
+int song_len = sizeof(song_notes);
 // 決定一拍多長，這邊一拍 300 ms
 int tempo = 300;
 
@@ -39,12 +39,14 @@ int recording_index = 0; //錄音中每個音符的索引
 int recording_notes[maxlen];  //紀錄錄音的音符
 int recording_tone[maxlen]; //紀錄錄音的音調
 
+// ======== 各種函數===========
 void b1() // 音調: Do
 {
   lcd.setCursor(0,0); //設游標在(0,0)位置
   lcd.print("                "); // 先清空第一行，用寫入16個空白做到
   lcd.setCursor(0,0); //再把游標設回(0,0)位置
   lcd.print(names[0]); //寫入第一個音調名稱 Do
+  
   if(toneflag == 0){ //如果目前選擇高音
     lcd.print("          High");  //第一行最後面輸出High
   }else if(toneflag == 1){ //如果目前選擇中音
@@ -53,6 +55,7 @@ void b1() // 音調: Do
   else if(toneflag == 2){ //如果目前選擇低音
     lcd.print("           Low"); //第一行最後面輸出Low
   }
+  
   lcd.noCursor(); //不顯示游標
   // tone(哪個腳位發聲, 發出什麼聲, 發出多久時間)
   tone(speakerPin, tones[toneflag][0], tempo); //發出[哪個音調][Do的音符]
@@ -74,6 +77,16 @@ void b2()
   lcd.print("                ");
   lcd.setCursor(0,0);
   lcd.print(names[1]);
+
+  if(toneflag == 0){ //如果目前選擇高音
+    lcd.print("          High");  //第一行最後面輸出High
+  }else if(toneflag == 1){ //如果目前選擇中音
+    lcd.print("        Middle"); //第一行最後面輸出Middle
+  }
+  else if(toneflag == 2){ //如果目前選擇低音
+    lcd.print("           Low"); //第一行最後面輸出Low
+  }
+    
   lcd.noCursor();
   tone(speakerPin, tones[toneflag][1], tempo);
   delay(tempo);
@@ -93,6 +106,16 @@ void b3()
   lcd.print("                ");
   lcd.setCursor(0,0);
   lcd.print(names[2]);
+
+  if(toneflag == 0){ //如果目前選擇高音
+    lcd.print("          High");  //第一行最後面輸出High
+  }else if(toneflag == 1){ //如果目前選擇中音
+    lcd.print("        Middle"); //第一行最後面輸出Middle
+  }
+  else if(toneflag == 2){ //如果目前選擇低音
+    lcd.print("           Low"); //第一行最後面輸出Low
+  }
+  
   lcd.noCursor();
   tone(speakerPin, tones[toneflag][2], tempo);
   delay(tempo);
@@ -112,6 +135,16 @@ void b4()
   lcd.print("                ");
   lcd.setCursor(0,0);
   lcd.print(names[3]);
+
+  if(toneflag == 0){ //如果目前選擇高音
+    lcd.print("          High");  //第一行最後面輸出High
+  }else if(toneflag == 1){ //如果目前選擇中音
+    lcd.print("        Middle"); //第一行最後面輸出Middle
+  }
+  else if(toneflag == 2){ //如果目前選擇低音
+    lcd.print("           Low"); //第一行最後面輸出Low
+  }
+  
   lcd.noCursor();
   tone(speakerPin, tones[toneflag][3], tempo);
   delay(tempo);
@@ -131,6 +164,16 @@ void b5()
   lcd.print("                ");
   lcd.setCursor(0,0);
   lcd.print(names[4]);
+
+  if(toneflag == 0){ //如果目前選擇高音
+    lcd.print("          High");  //第一行最後面輸出High
+  }else if(toneflag == 1){ //如果目前選擇中音
+    lcd.print("        Middle"); //第一行最後面輸出Middle
+  }
+  else if(toneflag == 2){ //如果目前選擇低音
+    lcd.print("           Low"); //第一行最後面輸出Low
+  }
+  
   lcd.noCursor();
   tone(speakerPin, tones[toneflag][4], tempo);
   delay(tempo);
@@ -150,6 +193,16 @@ void b6()
   lcd.print("                ");
   lcd.setCursor(0,0);
   lcd.print(names[5]);
+
+  if(toneflag == 0){ //如果目前選擇高音
+    lcd.print("          High");  //第一行最後面輸出High
+  }else if(toneflag == 1){ //如果目前選擇中音
+    lcd.print("        Middle"); //第一行最後面輸出Middle
+  }
+  else if(toneflag == 2){ //如果目前選擇低音
+    lcd.print("           Low"); //第一行最後面輸出Low
+  }
+  
   lcd.noCursor();
   tone(speakerPin, tones[toneflag][5], tempo);
   delay(tempo);
@@ -169,6 +222,16 @@ void b7()
   lcd.print("                ");
   lcd.setCursor(0,0);
   lcd.print(names[6]);
+
+  if(toneflag == 0){ //如果目前選擇高音
+    lcd.print("          High");  //第一行最後面輸出High
+  }else if(toneflag == 1){ //如果目前選擇中音
+    lcd.print("        Middle"); //第一行最後面輸出Middle
+  }
+  else if(toneflag == 2){ //如果目前選擇低音
+    lcd.print("           Low"); //第一行最後面輸出Low
+  }
+  
   lcd.noCursor();
   tone(speakerPin, tones[toneflag][6], tempo);
   delay(tempo);
@@ -218,7 +281,7 @@ void BTN1() //開始錄音
   lcd.setCursor(0,1);
   lcd.print("                ");
   lcd.setCursor(0,1);
-  lcd.print("Recording")
+  lcd.print("Recording");
   lcd.noCursor();
 }
 void BTN2() //停止錄音
@@ -240,7 +303,7 @@ void BTN3()
 
   for(int i = 0; i < recording_index; i++)
   {
-    int note_index = recording_index[i];
+    int note_index = recording_notes[i];
     int tone_index = recording_tone[i];
 
      // 顯示字符Playing
@@ -269,7 +332,7 @@ void BTN4() //播放預錄歌曲
   lcd.setCursor(0,0);
   lcd.print("                ");
   lcd.setCursor(0,0);
-  lcd.print("Twinkle Star");
+  lcd.print("Two Tigers");
   lcd.noCursor();
 
     // 顯示音符名稱
@@ -279,23 +342,33 @@ void BTN4() //播放預錄歌曲
   lcd.print("Playing a Song.");
   lcd.noCursor();
 
-  for(int i = 0; i < slong_len; i++)
+  for(int i = 0; i < song_len; i++)
   {
-    if(song_notes[i] = ' ')
+    if(song_notes[i] == ' ')
     {
       delay(song_beats[i] * tempo);
     }else
     {
       int song_note_idx = song_notes[i] - 'c';
-      if(noteIndex >= 0 && noteIndex < 7)
+      if(song_note_idx>= 0 && song_note_idx < 7)
       {
-        tone(speakerPin, tones[1][note_index], tempo); //使用中音
-        delay(bears[i] * tempo);
+        tone(speakerPin, tones[1][song_note_idx], song_beats[i] * tempo); //使用中音
+        delay(tempo);
         noTone(speakerPin);
-      }
-      
+
+        lcd.setCursor(0,0);
+        lcd.print("                ");
+        lcd.setCursor(0,0);
+        lcd.print(names[song_note_idx]);
+        lcd.noCursor();
+      }      
     }
   }
+  lcd.setCursor(0,0);
+  lcd.print("                ");
+  lcd.setCursor(0,1);
+  lcd.print("                ");
+  lcd.noCursor();
 }
 void setup() {
   pinMode(speakerPin, OUTPUT);
@@ -344,7 +417,7 @@ void loop()
   if(digitalRead(BT2) == LOW && !press_btn2)
   {
     press_btn2 = true;
-    BT2();
+    BTN2();
     delay(200);
   }
   if(digitalRead(BT2) == HIGH) press_btn2 = false;
@@ -352,7 +425,7 @@ void loop()
   if(digitalRead(BT3) == LOW && !press_btn3)
   {
     press_btn3 = true;
-    BT3();
+    BTN3();
     delay(200);
   }
   if(digitalRead(BT3) == HIGH) press_btn3 = false;
@@ -360,7 +433,7 @@ void loop()
   if(digitalRead(BT4) == LOW && !press_btn4)
   {
     press_btn4 = true;
-    BT4();
+    BTN4();
     delay(200);
   }
   if(digitalRead(BT4) == HIGH) press_btn4 = false;
@@ -381,9 +454,6 @@ void loop()
                (digitalRead(12)==LOW) || (digitalRead(13)==LOW))
           ; 
         
-        
-
-
         if(pressKey == '1') b1();
         if(pressKey == '2') b2();
         if(pressKey == '3') b3();
