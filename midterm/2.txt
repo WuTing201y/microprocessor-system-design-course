@@ -20,7 +20,7 @@ const byte DP = 0x40;   // Digit Point
 // E: 1110(最左邊亮)  D: 1101  B: 1011   7: 0111(最右邊亮)    // position
 const byte SEGMENT_SELECT[] = {0x0E,0x0D,0x0B,0x07};
 
-int arr[4] = {0};
+int num[4] = {0};
 
 void WriteNumberToSegment(unsigned int value, unsigned int pos)
 {
@@ -31,11 +31,11 @@ void WriteNumberToSegment(unsigned int value, unsigned int pos)
 
 }
 
-void all(byte value)
+void all()
 {
     for(int i = 0; i < 4; i++)
     {
-        num[i] = value;
+        WriteNumberToSegment(num[i],i);
     }
 }
 
@@ -45,40 +45,62 @@ void fly(byte value)
     {
         for(int i = 0; i < 4; i++)
         {
-            WriteNumberToSegment(value, i)
+            WriteNumberToSegment(value, i);
         }
     }
 }
-
+void func(byte value)
+{
+  for(int i =0; i <4;i++){
+    num[i]=value;
+  }
+}
 void loop()
 {
-    if(!digitalWrite(BT1))
+    all();
+    if(!digitalRead(BT1))
     {
         delay(50);
-        if(!digitalWrite(BT1)){
-            all(1);
+        if(!digitalRead(BT1)){
+            func(1);
+            for(int i = 0; i<500;i++){
+              all();
+            }
         }
+        while(!digitalRead(BT1));
     }
-    if(!digitalWrite(BT2))
+    if(!digitalRead(BT2))
     {
         delay(50);
-        if(!digitalWrite(BT2)){
-            all(3);
+        if(!digitalRead(BT2)){
+            func(3);
+            for(int i = 0; i<500;i++){
+              all();
+            }
         }
+        while(!digitalRead(BT2));
     }
-    if(!digitalWrite(BT3))
+    if(!digitalRead(BT3))
     {
         delay(50);
-        if(!digitalWrite(BT3)){
-            all(5);
+        if(!digitalRead(BT3)){
+            func(5);
+            for(int i = 0; i<500;i++){
+              all();
+            }
         }
+        while(!digitalRead(BT3));
     }
-    if(!digitalWrite(BT4))
+    if(!digitalRead(BT4))
     {
         delay(50);
-        if(!digitalWrite(BT4)){
-            all(7);
+        if(!digitalRead(BT4)){
+            func(7);
+            for(int i = 0; i<500;i++){
+              all();
+            }
         }
+        while(!digitalRead(BT4));
     }
 }
 
