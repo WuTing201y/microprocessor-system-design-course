@@ -1,127 +1,76 @@
-#define LATCH_DIO D15   
+#define DATA_DIO D2
+#define LATCH_DIO D15
 #define CLK_DIO D14
-#define DATA_DIO 2        // D2 is OK, too
-#define BUTTON1 BT1
-#define BUTTON2 BT2
-#define BUTTON3 BT3
-#define BUTTON4 BT4
-#define BUTTON_A0 A0
-#define BUTTON_A1 A1
-#define BUTTON_A2 A2
-#define BUTTON_A3 A3
-
-char KeyValue[]={'1','2','3','A','4','5','6','B','7','8','9','C','*','0','#','D'};
-byte Row=0, Col=0;  // 儲存掃描到的row & col
-
-/* Segment byte maps for numbers 0 to 9 , A, b , C*/ // MSB: dp g f e d c b a :LSB
-const byte SEGMENT_MAP[] = {0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0X7F,0X6F,0X77,0X7C,0X39,0x00};
+#define DELAYS 50
+// Segment byte maps for numbers [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, nothing]/ // MSB: dp g f e d c b a :LSB
+const byte SEGMENT_MAP[] = {0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0X7F, 0X6F, 0x00};
 const byte DP = 0x40;   // Digit Point
 
-// E: 1110(最左邊亮)  D: 1101  B: 1011   7: 0111(最右邊亮)    // position
-const byte SEGMENT_SELECT[] = {0x0E,0x0D,0x0B,0x07};
-
-int num[4] = {0};
-
-void WriteNumberToSegment(unsigned int value, unsigned int pos)
-{
-    digitalWrite(LATCH_DIO, LOW);
-    shiftOut(DATA_DIO,CLK_DIO,MSBFIRST, SEGMENT_MAP[value]);
-    shiftOut(DATA_DIO, CLK_DIO, MSBFIRST, SEGMENT_SELECT[pos]);
-    digitalWrite(LATCH_DIO, HIGH);
-
-}
-
-void all()
-{
-    for(int i = 0; i < 4; i++)
-    {
-        WriteNumberToSegment(num[i],i);
-    }
-}
-
-void fly(byte value)
-{
-   for(int i = 0; i < 4; i++){
-      WriteNumberToSegment(13,i);
-   }
-    
-}
-void func(byte value)
-{
-  for(int i =0; i <4;i++){
-    num[i]=value;
-  }
-}
-void loop()
-{
-    fly(9);
-//    if(!digitalRead(BT1))
-//    {
-//        delay(50);
-//        if(!digitalRead(BT1)){
-//            func(1);
-//            for(int i = 0; i<500;i++){
-//              all();
-//            }
-//        }
-//        while(!digitalRead(BT1));
-//    }
-//    if(!digitalRead(BT2))
-//    {
-//        delay(50);
-//        if(!digitalRead(BT2)){
-//            func(3);
-//            for(int i = 0; i<500;i++){
-//              all();
-//            }
-//        }
-//        while(!digitalRead(BT2));
-//    }
-//    if(!digitalRead(BT3))
-//    {
-//        delay(50);
-//        if(!digitalRead(BT3)){
-//            func(5);
-//            for(int i = 0; i<500;i++){
-//              all();
-//            }
-//        }
-//        while(!digitalRead(BT3));
-//    }
-//    if(!digitalRead(BT4))
-//    {
-//        delay(50);
-//        if(!digitalRead(BT4)){
-//            func(7);
-//            for(int i = 0; i<500;i++){
-//              all();
-//            }
-//        }
-//        while(!digitalRead(BT4));
-//    }
-}
+// Byte maps to select digit 1 to 4 */ // 7: 0111  B: 1011  D: 1101  E: 1110    // the 0's place
+const byte SEGMENT_SELECT[] = {0x07,0x0B,0x0D,0x0E, 0x00};   // {0xFE,0xFD,0xFB,0xF7};  is OK, too.
+int seg_queue[] = {10, 10, 10, 10};
 
 void setup() {
-  pinMode(LATCH_DIO,  OUTPUT);
-  pinMode(CLK_DIO,    OUTPUT);
-  pinMode(DATA_DIO,   OUTPUT);
+  //For 7 segment
+  pinMode(LATCH_DIO, OUTPUT);
+  pinMode(CLK_DIO, OUTPUT);
+  pinMode(DATA_DIO, OUTPUT);
 
-  // 腳位上拉，沒有按時為HIGH，按下後變成LOW
-  pinMode(10, INPUT_PULLUP); //R1: S1,S2,S3,S4 (1,2,3,A)                                   
-  pinMode(11, INPUT_PULLUP); //R2: S5,S6,S7,S8 (4,5,6,B)
-  pinMode(12, INPUT_PULLUP); //R3: S9, S10, S11,S12 (7,8,9,C)
-  pinMode(13, INPUT_PULLUP); //R4: (*,0,#,D)
-  
-  // 欄腳
-  pinMode(A0, OUTPUT); // col 欄腳 (1,4,7,*)
-  pinMode(A1, OUTPUT); // col 欄腳 (2,5,8,0)
-  pinMode(A2, OUTPUT); // col 欄腳 (3,6,9,#)
-  pinMode(A3, OUTPUT); // col 欄腳 (A, B, C, D) is correct.
-  
-  //欄腳位，預設HIGH
-  digitalWrite(A0,HIGH);
-  digitalWrite(A1,HIGH);
-  digitalWrite(A2,HIGH);
-  digitalWrite(A3,HIGH);
+  // segments init
+  reset();
+}
 
+// Write a decimal number between 0 and 9 to one of the 4 digits of the display */
+void WriteNumberToSegment(byte Segment, byte Value)
+{
+  digitalWrite(LATCH_DIO, LOW);
+  // The following order cannot be changed. MAP first and then SELECT.
+  shiftOut(DATA_DIO, CLK_DIO, MSBFIRST, SEGMENT_MAP[Value]);        
+  shiftOut(DATA_DIO, CLK_DIO, MSBFIRST, SEGMENT_SELECT[Segment] );
+
+  digitalWrite(LATCH_DIO,HIGH);
+}
+
+void reset() {  // dim all the light
+  WriteNumberToSegment(4, 13);
+}
+
+// status: 0 -> 9009
+// status: 1 -> 0990
+// status: 2 -> 0990
+// status: 3 -> 9009
+// status: 4 -> 0000
+// status: 5 -> 0000
+
+int statuss = 0;
+void loop() {
+
+  // add the number into array
+  if (statuss == 0 || statuss == 3) {
+    seg_queue[0] = 9;
+    seg_queue[1] = 10;
+    seg_queue[2] = 10;
+    seg_queue[3] = 9;
+  }
+  if (statuss == 1 || statuss == 2) {
+    seg_queue[0] = 10;
+    seg_queue[1] = 9;
+    seg_queue[2] = 9;
+    seg_queue[3] = 10;
+  }
+  if (statuss == 4 || statuss == 5) {
+    seg_queue[0] = 10;
+    seg_queue[1] = 10;
+    seg_queue[2] = 10;
+    seg_queue[3] = 10;
+  }
+
+  // display numbers on the segment
+  for (int t = 0; t < DELAYS; ++t) {
+      for (int i = 0; i < 4; ++i) {
+          WriteNumberToSegment(i, seg_queue[i]);
+          delay(5);
+      }
+  }
+  statuss = (statuss + 1) % 6;  // status loop from 0 to 5;
 }
