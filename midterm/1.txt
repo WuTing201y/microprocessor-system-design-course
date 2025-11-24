@@ -73,7 +73,7 @@ void effect2Leds() {
   for(int repeat = 0; repeat < 2; repeat++) {
     
     // 階段1: 從兩側飛入到中間
-    for(int pos = 0; pos < 8; pos++) {
+    for(int pos = 1; pos < 8; pos++) {
       unsigned int pattern = 0;
       
       // 左側2個連續的LED
@@ -91,11 +91,11 @@ void effect2Leds() {
       }
       
       LedsDisplay(pattern);
-      delay(100);
+      delay(300);
     }
     
     // 階段2: 交錯而過，從另一側飛離
-    for(int pos = 0; pos < 8; pos++) {
+    for(int pos = 0; pos <= 8; pos++) {
       unsigned int pattern = 0;
       
       // 繼續移動到另一側
@@ -109,7 +109,7 @@ void effect2Leds() {
       }
       
       LedsDisplay(pattern);
-      delay(100);
+      delay(300);
     }
     
     LedsDisplay(0x0000);
@@ -125,7 +125,7 @@ void effect3Leds() {
   for(int repeat = 0; repeat < 2; repeat++) {
     
     // 階段1: 從兩側飛入到中間
-    for(int pos = 0; pos < 8; pos++) {
+    for(int pos = 2; pos < 8; pos++) {
       unsigned int pattern = 0;
       
       // 左側3個連續的LED
@@ -143,11 +143,11 @@ void effect3Leds() {
       }
       
       LedsDisplay(pattern);
-      delay(100);
+      delay(400);
     }
     
     // 階段2: 交錯而過，從另一側飛離
-    for(int pos = 0; pos < 8; pos++) {
+    for(int pos = 1; pos <= 9; pos++) {
       unsigned int pattern = 0;
       
       // 繼續移動到另一側
@@ -161,7 +161,7 @@ void effect3Leds() {
       }
       
       LedsDisplay(pattern);
-      delay(100);
+      delay(400);
     }
     
     LedsDisplay(0x0000);
@@ -177,7 +177,7 @@ void effect4Leds() {
   for(int repeat = 0; repeat < 2; repeat++) {
     
     // 階段1: 從兩側飛入到中間
-    for(int pos = 0; pos < 8; pos++) {
+    for(int pos = 3; pos < 9; pos++) {
       unsigned int pattern = 0;
       
       // 左側4個連續的LED
@@ -195,11 +195,11 @@ void effect4Leds() {
       }
       
       LedsDisplay(pattern);
-      delay(100);
+      delay(400);
     }
     
     // 階段2: 交錯而過，從另一側飛離
-    for(int pos = 0; pos < 8; pos++) {
+    for(int pos = 1; pos <= 10; pos++) {
       unsigned int pattern = 0;
       
       // 繼續移動到另一側
@@ -213,7 +213,7 @@ void effect4Leds() {
       }
       
       LedsDisplay(pattern);
-      delay(100);
+      delay(400);
     }
     
     LedsDisplay(0x0000);
