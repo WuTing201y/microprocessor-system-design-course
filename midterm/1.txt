@@ -1,0 +1,260 @@
+#define NUM 16
+int leds[NUM] = {D0, D1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, D14, D15};
+
+// 定義按鈕腳位
+#define BTN1 /* 填入你的按鈕1腳位 */
+#define BTN2 /* 填入你的按鈕2腳位 */
+#define BTN3 /* 填入你的按鈕3腳位 */
+#define BTN4 /* 填入你的按鈕4腳位 */
+
+void setup() {
+  for(int i = 0; i < NUM; i++){
+    pinMode(leds[i], OUTPUT);
+  }
+  pinMode(BTN1, INPUT_PULLUP);
+  pinMode(BTN2, INPUT_PULLUP);
+  pinMode(BTN3, INPUT_PULLUP);
+  pinMode(BTN4, INPUT_PULLUP);
+}
+
+void LedsDisplay(unsigned value)
+{
+    unsigned tmp = (value & 0xFFFF);
+    for(int i = 0; i < NUM; i++){
+        if(i == 3){
+            digitalWrite(leds[i], HIGH); // D3永遠保持滅
+            tmp >>= 1; // 仍然要移位
+        }
+        else if(tmp & 0x1) digitalWrite(leds[i], LOW);  // LOW是亮
+        else digitalWrite(leds[i], HIGH); // HIGH是滅
+        tmp >>= 1;
+    }
+}
+
+// t=1: 1個LED從兩側飛入、交錯、飛離
+void effect1Led() {
+  // 對稱配對: bit0↔bit15, bit1↔bit14, bit2↔bit13, bit3↔bit12, 
+  //          bit4↔bit11, bit5↔bit10, bit6↔bit9, bit7↔bit8
+  
+  // 重複2次
+  for(int repeat = 0; repeat < 2; repeat++) {
+    
+    // 階段1: 從兩側飛入到中間
+    for(int pos = 0; pos < 8; pos++) {
+      unsigned int pattern = 0;
+      // 左側1個LED
+      pattern |= (1 << pos);
+      // 右側對稱的1個LED
+      pattern |= (1 << (15 - pos));
+      
+      LedsDisplay(pattern);
+      delay(100);
+    }
+    
+    // 階段2: 交錯而過，從另一側飛離
+    for(int pos = 0; pos < 8; pos++) {
+      unsigned int pattern = 0;
+      // 繼續移動到另一側
+      pattern |= (1 << (7 - pos));      // 左側
+      pattern |= (1 << (8 + pos));      // 右側
+      
+      LedsDisplay(pattern);
+      delay(100);
+    }
+    
+    LedsDisplay(0x0000); // 全滅
+    delay(200);
+  }
+  
+  LedsDisplay(0x0000);
+}
+
+// t=2: 2個LED從兩側飛入、交錯、飛離
+void effect2Leds() {
+  // 重複2次
+  for(int repeat = 0; repeat < 2; repeat++) {
+    
+    // 階段1: 從兩側飛入到中間
+    for(int pos = 0; pos < 8; pos++) {
+      unsigned int pattern = 0;
+      
+      // 左側2個連續的LED
+      for(int j = 0; j < 2; j++) {
+        if(pos - j >= 0) {
+          pattern |= (1 << (pos - j));
+        }
+      }
+      
+      // 右側對稱的2個LED
+      for(int j = 0; j < 2; j++) {
+        if(pos - j >= 0) {
+          pattern |= (1 << (15 - (pos - j)));
+        }
+      }
+      
+      LedsDisplay(pattern);
+      delay(100);
+    }
+    
+    // 階段2: 交錯而過，從另一側飛離
+    for(int pos = 0; pos < 8; pos++) {
+      unsigned int pattern = 0;
+      
+      // 繼續移動到另一側
+      for(int j = 0; j < 2; j++) {
+        if((7 - pos + j) >= 0 && (7 - pos + j) <= 7) {
+          pattern |= (1 << (7 - pos + j));      // 左側
+        }
+        if((8 + pos - j) >= 8 && (8 + pos - j) <= 15) {
+          pattern |= (1 << (8 + pos - j));      // 右側
+        }
+      }
+      
+      LedsDisplay(pattern);
+      delay(100);
+    }
+    
+    LedsDisplay(0x0000);
+    delay(200);
+  }
+  
+  LedsDisplay(0x0000);
+}
+
+// t=3: 3個LED從兩側飛入、交錯、飛離
+void effect3Leds() {
+  // 重複2次
+  for(int repeat = 0; repeat < 2; repeat++) {
+    
+    // 階段1: 從兩側飛入到中間
+    for(int pos = 0; pos < 8; pos++) {
+      unsigned int pattern = 0;
+      
+      // 左側3個連續的LED
+      for(int j = 0; j < 3; j++) {
+        if(pos - j >= 0) {
+          pattern |= (1 << (pos - j));
+        }
+      }
+      
+      // 右側對稱的3個LED
+      for(int j = 0; j < 3; j++) {
+        if(pos - j >= 0) {
+          pattern |= (1 << (15 - (pos - j)));
+        }
+      }
+      
+      LedsDisplay(pattern);
+      delay(100);
+    }
+    
+    // 階段2: 交錯而過，從另一側飛離
+    for(int pos = 0; pos < 8; pos++) {
+      unsigned int pattern = 0;
+      
+      // 繼續移動到另一側
+      for(int j = 0; j < 3; j++) {
+        if((7 - pos + j) >= 0 && (7 - pos + j) <= 7) {
+          pattern |= (1 << (7 - pos + j));
+        }
+        if((8 + pos - j) >= 8 && (8 + pos - j) <= 15) {
+          pattern |= (1 << (8 + pos - j));
+        }
+      }
+      
+      LedsDisplay(pattern);
+      delay(100);
+    }
+    
+    LedsDisplay(0x0000);
+    delay(200);
+  }
+  
+  LedsDisplay(0x0000);
+}
+
+// t=4: 4個LED從兩側飛入、交錯、飛離
+void effect4Leds() {
+  // 重複2次
+  for(int repeat = 0; repeat < 2; repeat++) {
+    
+    // 階段1: 從兩側飛入到中間
+    for(int pos = 0; pos < 8; pos++) {
+      unsigned int pattern = 0;
+      
+      // 左側4個連續的LED
+      for(int j = 0; j < 4; j++) {
+        if(pos - j >= 0) {
+          pattern |= (1 << (pos - j));
+        }
+      }
+      
+      // 右側對稱的4個LED
+      for(int j = 0; j < 4; j++) {
+        if(pos - j >= 0) {
+          pattern |= (1 << (15 - (pos - j)));
+        }
+      }
+      
+      LedsDisplay(pattern);
+      delay(100);
+    }
+    
+    // 階段2: 交錯而過，從另一側飛離
+    for(int pos = 0; pos < 8; pos++) {
+      unsigned int pattern = 0;
+      
+      // 繼續移動到另一側
+      for(int j = 0; j < 4; j++) {
+        if((7 - pos + j) >= 0 && (7 - pos + j) <= 7) {
+          pattern |= (1 << (7 - pos + j));
+        }
+        if((8 + pos - j) >= 8 && (8 + pos - j) <= 15) {
+          pattern |= (1 << (8 + pos - j));
+        }
+      }
+      
+      LedsDisplay(pattern);
+      delay(100);
+    }
+    
+    LedsDisplay(0x0000);
+    delay(200);
+  }
+  
+  LedsDisplay(0x0000);
+}
+
+void loop() {
+  if(digitalRead(BTN1) == LOW) {
+    delay(50);
+    if(digitalRead(BTN1) == LOW) { //做兩次if判斷是為了防止物理上按下，但沒偵測到
+      effect1Led();
+      while(digitalRead(BTN1) == LOW);
+    }
+  }
+  
+  if(digitalRead(BTN2) == LOW) {
+    delay(50);
+    if(digitalRead(BTN2) == LOW) {
+      effect2Leds();
+      while(digitalRead(BTN2) == LOW);
+    }
+  }
+  
+  if(digitalRead(BTN3) == LOW) {
+    delay(50);
+    if(digitalRead(BTN3) == LOW) {
+      effect3Leds();
+      while(digitalRead(BTN3) == LOW);
+    }
+  }
+  
+  if(digitalRead(BTN4) == LOW) {
+    delay(50);
+    if(digitalRead(BTN4) == LOW) {
+      effect4Leds();
+      while(digitalRead(BTN4) == LOW);
+    }
+  }
+}
