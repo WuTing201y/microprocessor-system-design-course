@@ -1,30 +1,28 @@
 #define NUM 16
 int leds[NUM] = {D0, D1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, D14, D15};
 
-// 定義按鈕腳位
-#define BTN1 /* 填入你的按鈕1腳位 */
-#define BTN2 /* 填入你的按鈕2腳位 */
-#define BTN3 /* 填入你的按鈕3腳位 */
-#define BTN4 /* 填入你的按鈕4腳位 */
+#define BUTTON1 BT1
+#define BUTTON2 BT2
+#define BUTTON3 BT3
+#define BUTTON4 BT4
 
 void setup() {
   for(int i = 0; i < NUM; i++){
+    if(i==3) {};
     pinMode(leds[i], OUTPUT);
   }
-  pinMode(BTN1, INPUT_PULLUP);
-  pinMode(BTN2, INPUT_PULLUP);
-  pinMode(BTN3, INPUT_PULLUP);
-  pinMode(BTN4, INPUT_PULLUP);
+  
+  pinMode(BT1, INPUT_PULLUP);
+  pinMode(BT2, INPUT_PULLUP);
+  pinMode(BT3, INPUT_PULLUP);
+  pinMode(BT4, INPUT_PULLUP);
 }
 
 void LedsDisplay(unsigned value)
 {
     unsigned tmp = (value & 0xFFFF);
     for(int i = 0; i < NUM; i++){
-        if(i == 3){
-            digitalWrite(leds[i], HIGH); // D3永遠保持滅
-            tmp >>= 1; // 仍然要移位
-        }
+        if(i == 3){}
         else if(tmp & 0x1) digitalWrite(leds[i], LOW);  // LOW是亮
         else digitalWrite(leds[i], HIGH); // HIGH是滅
         tmp >>= 1;
@@ -226,35 +224,35 @@ void effect4Leds() {
 }
 
 void loop() {
-  if(digitalRead(BTN1) == LOW) {
+  if(!digitalRead(BT1)) {
     delay(50);
-    if(digitalRead(BTN1) == LOW) { //做兩次if判斷是為了防止物理上按下，但沒偵測到
+    if(!digitalRead(BT1)) { //做兩次if判斷是為了防止物理上按下，但沒偵測到
       effect1Led();
-      while(digitalRead(BTN1) == LOW);
+      while(!digitalRead(BT1));
     }
   }
   
-  if(digitalRead(BTN2) == LOW) {
+  if(digitalRead(BT2) == LOW) {
     delay(50);
-    if(digitalRead(BTN2) == LOW) {
+    if(digitalRead(BT2) == LOW) {
       effect2Leds();
-      while(digitalRead(BTN2) == LOW);
+      while(digitalRead(BT2) == LOW);
     }
   }
   
-  if(digitalRead(BTN3) == LOW) {
+  if(digitalRead(BT3) == LOW) {
     delay(50);
-    if(digitalRead(BTN3) == LOW) {
+    if(digitalRead(BT3) == LOW) {
       effect3Leds();
-      while(digitalRead(BTN3) == LOW);
+      while(digitalRead(BT3) == LOW);
     }
   }
   
-  if(digitalRead(BTN4) == LOW) {
+  if(digitalRead(BT4) == LOW) {
     delay(50);
-    if(digitalRead(BTN4) == LOW) {
+    if(digitalRead(BT4) == LOW) {
       effect4Leds();
-      while(digitalRead(BTN4) == LOW);
+      while(digitalRead(BT4) == LOW);
     }
   }
 }
