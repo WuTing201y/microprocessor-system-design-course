@@ -1,0 +1,224 @@
+#include <RTC.h>
+#include <LiquidCrystal.h>
+
+// =================== LCD 設定 ===================
+// 建立 LCD 物件，腳位依序為 RS, E, D4, D5, D6, D7
+LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+
+// =================== 按鍵腳位定義 ===================
+#define BTN1 BT1   // 進入碼錶模式
+#define BTN2 BT2   // 重設碼錶（歸零）
+#define BTN3 BT3   // 結束碼錶模式，回到時鐘
+#define BTN4 BT4   // 開始/暫停碼錶
+
+// =================== Demo 起始時間 ===================
+const byte MONTH = 12;   // 5月（固定顯示）
+const byte DAY   = 10;   // 9日（會自動往上加）
+const byte HOUR  = 13;   // 5點
+const byte MIN   = 30;   // 8分
+const byte SEC   = 03;   // 6秒
+
+// =================== 模式變數 ===================
+// 0 = 時鐘模式（只顯示第一列時間）
+// 1 = 碼錶模式（第一列時間 + 第二列碼錶）
+byte mode = 0;  // 初始為時鐘模式
+
+// =================== 碼錶計時變數 ===================
+// 使用 millis() 計時，不會影響 RTC 的時間
+unsigned long StartMillis   = 0;  // 開始計時那一刻的 millis() 值
+unsigned long ElapsedMillis = 0;  // 已經累積的毫秒數（暫停時保存）
+bool Running = false;             // 碼錶是否正在跑：true=跑, false=暫停
+
+// =================== 輔助函數：印出兩位數 ===================
+// 功能：如果數字小於 10，前面補 0
+// 例如：5 → "05"，12 → "12"
+void print2Digits(byte v) {
+  if (v < 10) lcd.print("0");  // 小於10就印"0"
+  lcd.print(v);                // 再印數字本身
+}
+
+// =================== 更新 LCD 第一列：RTC 時間 ===================
+// 格式：MM/DD HH:MM:SS
+// 例如：05/09 05:08:06
+void updateClockLine() {
+  byte hh  = RTC.gethours();    // 取得小時
+  byte mm  = RTC.getminutes();  // 取得分鐘
+  byte ss  = RTC.getseconds();  // 取得秒數
+  byte day = RTC.getday();      // 取得日期（RTC 會自動往上加）
+
+  lcd.setCursor(0, 0);          // 移到第一列開頭
+  
+  // 印出月份（固定 05）
+  print2Digits(MONTH_DEMO);
+  lcd.print("/");
+  
+  // 印出日期（會自動增加）
+  print2Digits(day);
+  lcd.print(" ");
+  
+  // 印出時:分:秒
+  print2Digits(hh);
+  lcd.print(":");
+  print2Digits(mm);
+  lcd.print(":");
+  print2Digits(ss);
+
+  // 清除可能殘留的舊字元（LCD 共 16 格，時間占 14 格）
+  lcd.print("  ");  // 補兩個空格
+}
+
+// =================== 更新 LCD 第二列：碼錶 ===================
+// 格式：HH:MM:SS + 狀態文字
+// 例如：00:01:23Counting
+void updateStopwatchLine() {
+  // 計算目前總共經過多少毫秒
+  unsigned long totalMillis = ElapsedMillis;  // 先拿已累積的
+  
+  if (Running) {
+    // 如果碼錶正在跑，加上從開始到現在的時間差
+    totalMillis += (millis() - StartMillis);
+  }
+  
+  // 將毫秒轉換成秒
+  unsigned long totalSeconds = totalMillis / 1000;
+  
+  // 計算時:分:秒
+  unsigned int hh = totalSeconds / 3600;         // 1小時 = 3600秒
+  if (hh > 99) hh = 99;                          // 最多顯示 99 小時
+  unsigned int mm = (totalSeconds % 3600) / 60;  // 剩餘秒數 ÷ 60 = 分鐘
+  unsigned int ss = totalSeconds % 60;           // 剩餘秒數 mod 60 = 秒
+
+  lcd.setCursor(0, 1);  // 移到第二列開頭
+  
+  // 印出 HH:MM:SS
+  print2Digits(hh);
+  lcd.print(":");
+  print2Digits(mm);
+  lcd.print(":");
+  print2Digits(ss);
+
+  // 根據狀態印出不同文字
+  if (!Running && ElapsedMillis == 0) {
+    lcd.print("StopWatch");  // 初始狀態
+  } else if (Running) {
+    lcd.print("Counting ");  // 計時中
+  } else {
+    lcd.print("Stop     ");  // 暫停
+  }
+}
+
+// =================== 清空第二列 ===================
+void clearSecondLine() {
+  lcd.setCursor(0, 1);                // 移到第二列
+  for (int i = 0; i < 16; i++) {      // LCD 一列有 16 格
+    lcd.print(" ");                   // 全部印空格
+  }
+}
+
+// =================== 按鍵處理：BTN1 進入碼錶模式 ===================
+void checkBtn1() {
+  if (!digitalRead(BTN1)) {     // 按鈕被按下（active-low）
+    delay(50);                        // 等待 50ms 去彈跳
+    if (!digitalRead(BTN1)) {   // 再次確認真的按下
+      if (mode == 0) {                // 只有在時鐘模式才能進入碼錶
+        mode = 1;                     // 切換到碼錶模式
+        Running = false;            // 初始狀態：未開始
+        ElapsedMillis = 0;          // 時間歸零
+        updateStopwatchLine();        // 顯示碼錶第二列
+      }
+      while (digitalRead(BTN1) == LOW);  // 等待按鍵放開
+    }
+  }
+}
+
+// =================== 按鍵處理：BTN2 重設碼錶 ===================
+void checkBtn2() {
+  if (!digitalRead(BTN2)) {
+    delay(50);
+    if (!digitalRead(BTN2)) {
+      if (mode == 1) {                // 只有在碼錶模式才能重設
+        Running = false;            // 停止計時
+        ElapsedMillis = 0;          // 時間歸零
+        updateStopwatchLine();        // 更新顯示
+      }
+      while (!digitalRead(BTN2));
+    }
+  }
+}
+
+// =================== 按鍵處理：BTN3 結束碼錶模式 ===================
+void checkBtn3() {
+  if (!digitalRead(BTN3)) {
+    delay(50);
+    if (!digitalRead(BTN3)) {
+      if (mode == 1) {                // 只有在碼錶模式才能結束
+        mode = 0;                     // 切回時鐘模式
+        Running = false;            // 停止計時
+        ElapsedMillis = 0;          // 清除資料
+        clearSecondLine();            // 清空第二列
+      }
+      while (!digitalRead(BTN3));
+    }
+  }
+}
+
+// =================== 按鍵處理：BTN4 開始/暫停碼錶 ===================
+void checkBtn4() {
+  if (!digitalRead(BTN4)) {
+    delay(50);
+    if (!digitalRead(BTN4)) {
+      if (mode == 1) {                      // 只有在碼錶模式才能開始/暫停
+        if (!Running) {
+          // 目前是暫停 → 開始計時
+          Running = true;                 // 設為運行中
+          StartMillis = millis();         // 記錄現在的 millis()
+        } else {
+          // 目前在跑 → 暫停
+          // 先把經過的時間累積起來
+          ElapsedMillis += (millis() - StartMillis);
+          Running = false;                // 設為暫停
+        }
+        updateStopwatchLine();              // 更新顯示
+      }
+      while (!digitalRead(BTN4));
+    }
+  }
+}
+
+// =================== setup 初始化 ===================
+void setup() {
+  lcd.begin(16, 2);  // 初始化 LCD（16行2列）
+
+  // 設定按鍵為輸入模式
+  pinMode(BTN1, INPUT);
+  pinMode(BTN2, INPUT);
+  pinMode(BTN3, INPUT);
+  pinMode(BTN4, INPUT);
+
+  // 設定 RTC 起始時間（日/時/分/秒）
+  RTC.settime(DAY, HOUR, MIN, SEC);
+  RTC.startcounting();  // 開始計時
+
+  // 初始顯示：只有第一列時鐘
+  updateClockLine();
+  clearSecondLine();
+}
+
+// =================== loop 主迴圈 ===================
+void loop() {
+  // 1. 檢查所有按鍵
+  checkBtn1();  // 進入碼錶模式
+  checkBtn2();  // 重設碼錶
+  checkBtn3();  // 結束碼錶模式
+  checkBtn4();  // 開始/暫停
+
+  // 2. 每次迴圈都更新時鐘顯示（第一列）
+  updateClockLine();
+
+  // 3. 如果在碼錶模式，更新碼錶顯示（第二列）
+  if (mode == 1) {
+    updateStopwatchLine();
+  }
+
+  delay(100);  // 延遲 100ms，避免更新太快造成閃爍
+}
