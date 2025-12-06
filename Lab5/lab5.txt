@@ -1,0 +1,262 @@
+#include <RTC.h>
+#include <LiquidCrystal.h>
+
+// =================== LCD 設定 ===================
+LiquidCrystal lcd(8, 9, 4, 5, 6, 7); // RS, E, D4, D5, D6, D7
+
+// =================== 按鍵腳位 ===================
+#define BTN1 BT1   // 進入碼錶模式
+#define BTN2 BT2   // 重設碼錶
+#define BTN3 BT3   // 結束碼錶模式
+#define BTN4 BT4   // 開始/暫停碼錶
+
+// =================== Demo 起始時間 ===================
+const byte MONTH_DEMO = 5;  // 05 月
+const byte DAY_DEMO   = 9;  // 09 日
+
+const byte HOUR_DEMO  = 5;  // 05 點
+const byte MIN_DEMO   = 8;  // 08 分
+const byte SEC_DEMO   = 6;  // 06 秒
+
+// =================== 模式定義 ===================
+enum {
+  MODE_CLOCK = 0,    // 只顯示時鐘
+  MODE_STOPWATCH     // 碼錶模式
+};
+
+byte mode = MODE_CLOCK;
+
+// =================== 碼錶相關變數 ===================
+// 使用 millis() 做碼錶，不會影響 RTC
+unsigned long swStartMillis   = 0; // 開始計時時的 millis()
+unsigned long swElapsedMillis = 0; // 累積的毫秒（暫停時不再增加）
+bool swRunning = false;            // true: 計時中, false: 暫停
+
+// 用來決定何時重畫碼錶
+unsigned long lastSwSeconds = 0;
+bool swStatusDirty = true;         // 狀態文字有變更時設 true
+
+// 狀態文字：StopWatch / Counting / Stop
+const char* swStatusText = "StopWatch";
+
+// =================== 按鍵去彈跳 / 邊緣偵測 ===================
+bool lastBtn1 = HIGH;
+bool lastBtn2 = HIGH;
+bool lastBtn3 = HIGH;
+bool lastBtn4 = HIGH;
+
+// =================== 時鐘顯示更新控制 ===================
+unsigned long lastClockUpdate = 0; // 上一次更新 LCD 第一列的時間（millis）
+
+// ------------------- 小工具：兩位數印出 -------------------
+void print2Digits(byte v) {
+  if (v < 10) lcd.print("0");
+  lcd.print(v);
+}
+
+// ------------------- 畫出第一列：RTC 時間 -------------------
+void updateClockLine() {
+  byte hh  = RTC.gethours();
+  byte mm  = RTC.getminutes();
+  byte ss  = RTC.getseconds();
+  byte day = RTC.getday();    // RTC 自己會讓日數往上加
+
+  lcd.setCursor(0, 0);
+  // 格式：MM/DD HH:MM:SS  → 例：05/09 05:08:06
+  print2Digits(MONTH_DEMO);
+  lcd.print("/");
+  print2Digits(day);
+  lcd.print(" ");
+  print2Digits(hh);
+  lcd.print(":");
+  print2Digits(mm);
+  lcd.print(":");
+  print2Digits(ss);
+
+  // 若上次字比較長，尾巴可能殘留，所以補空白
+  int used = 14; // "MM/DD HH:MM:SS" 共 14 字
+  for (int i = used; i < 16; i++) {
+    lcd.print(" ");
+  }
+}
+
+// ------------------- 計算並畫出第二列：碼錶 -------------------
+void updateStopwatchLine() {
+  unsigned long now = millis();
+  unsigned long totalMillis = swElapsedMillis;
+
+  if (swRunning) {
+    totalMillis += (now - swStartMillis);
+  }
+
+  unsigned long totalSeconds = totalMillis / 1000;
+
+  // 時、分、秒（最多到 99:59:59 就夠用了）
+  unsigned int hh = totalSeconds / 3600;
+  if (hh > 99) hh = 99; // 避免超過 2 位數
+  unsigned int mm = (totalSeconds % 3600) / 60;
+  unsigned int ss = totalSeconds % 60;
+
+  lastSwSeconds = totalSeconds;
+
+  lcd.setCursor(0, 1);
+  // 00:00:00
+  if (hh < 10) lcd.print("0");
+  lcd.print(hh);
+  lcd.print(":");
+  print2Digits(mm);
+  lcd.print(":");
+  print2Digits(ss);
+
+  // 接著直接緊貼狀態文字：Counting / Stop / StopWatch
+  lcd.print(swStatusText);
+
+  // 清掉多餘舊字
+  int used = 8 + strlen(swStatusText); // 8 個碼錶字 + 狀態長度
+  if (used < 16) {
+    for (int i = used; i < 16; i++) {
+      lcd.print(" ");
+    }
+  }
+}
+
+// ------------------- 清空第二列 -------------------
+void clearSecondLine() {
+  lcd.setCursor(0, 1);
+  for (int i = 0; i < 16; i++) lcd.print(" ");
+}
+
+// ------------------- 進入碼錶模式 -------------------
+void enterStopwatchMode() {
+  mode = MODE_STOPWATCH;
+
+  // 初始狀態：時間歸零，狀態 StopWatch，不在跑
+  swRunning = false;
+  swElapsedMillis = 0;
+  swStatusText = "StopWatch";
+  swStatusDirty = true;
+  lastSwSeconds = 999999; // 強制下一次重畫
+
+  updateStopwatchLine();
+}
+
+// ------------------- 離開碼錶模式 -------------------
+void exitStopwatchMode() {
+  mode = MODE_CLOCK;
+  swRunning = false;
+  swElapsedMillis = 0;
+  clearSecondLine();
+}
+
+// ------------------- 處理按鍵事件 -------------------
+void handleButtonPresses() {
+  bool cur1 = digitalRead(BTN1);
+  bool cur2 = digitalRead(BTN2);
+  bool cur3 = digitalRead(BTN3);
+  bool cur4 = digitalRead(BTN4);
+
+  // 按下 BTN1：進入碼錶模式（只在 clock 模式時有用）
+  if (lastBtn1 == HIGH && cur1 == LOW) {  // HIGH→LOW：按下（active-low）
+    if (mode == MODE_CLOCK) {
+      enterStopwatchMode();
+    }
+  }
+
+  // BTN2：重設碼錶（只在碼錶模式）
+  if (lastBtn2 == HIGH && cur2 == LOW) {
+    if (mode == MODE_STOPWATCH) {
+      swRunning = false;
+      swElapsedMillis = 0;
+      swStatusText = "StopWatch";
+      swStatusDirty = true;
+    }
+  }
+
+  // BTN3：結束碼錶模式，回到時鐘，只顯示第一列
+  if (lastBtn3 == HIGH && cur3 == LOW) {
+    if (mode == MODE_STOPWATCH) {
+      exitStopwatchMode();
+    }
+  }
+
+  // BTN4：開始 / 暫停 碼錶（只在碼錶模式）
+  if (lastBtn4 == HIGH && cur4 == LOW) {
+    if (mode == MODE_STOPWATCH) {
+      if (!swRunning) {
+        // 從暫停 → 開始
+        swRunning = true;
+        swStartMillis = millis(); // 從現在開始繼續算
+        swStatusText = "Counting";
+        swStatusDirty = true;
+      } else {
+        // 從計時中 → 暫停
+        unsigned long now = millis();
+        swElapsedMillis += (now - swStartMillis);
+        swRunning = false;
+        swStatusText = "Stop";
+        swStatusDirty = true;
+      }
+    }
+  }
+
+  // 更新上一輪狀態
+  lastBtn1 = cur1;
+  lastBtn2 = cur2;
+  lastBtn3 = cur3;
+  lastBtn4 = cur4;
+}
+
+// =================== setup ===================
+void setup() {
+  lcd.begin(16, 2);
+
+  // 按鍵腳位：板子多半已經有上拉，這裡用 INPUT 即可
+  pinMode(BTN1, INPUT);
+  pinMode(BTN2, INPUT);
+  pinMode(BTN3, INPUT);
+  pinMode(BTN4, INPUT);
+
+  lastBtn1 = digitalRead(BTN1);
+  lastBtn2 = digitalRead(BTN2);
+  lastBtn3 = digitalRead(BTN3);
+  lastBtn4 = digitalRead(BTN4);
+
+  // 設定 RTC 起始時間：只能設 日 / 時 / 分 / 秒
+  RTC.settime(DAY_DEMO, HOUR_DEMO, MIN_DEMO, SEC_DEMO);
+  RTC.startcounting();
+
+  // 先更新一次時鐘畫面
+  updateClockLine();
+  clearSecondLine();
+}
+
+// =================== loop ===================
+void loop() {
+  // 1. 處理按鍵（所有模式都要看）
+  handleButtonPresses();
+
+  unsigned long now = millis();
+
+  // 2. 每 1 秒更新一次 RTC 顯示（第一列）
+  if (now - lastClockUpdate >= 1000) {
+    lastClockUpdate = now;
+    updateClockLine();
+  }
+
+  // 3. 在碼錶模式下更新第二列
+  if (mode == MODE_STOPWATCH) {
+    unsigned long totalMillis = swElapsedMillis;
+    if (swRunning) totalMillis += (now - swStartMillis);
+    unsigned long totalSeconds = totalMillis / 1000;
+
+    // 秒數有變，或者狀態文字剛改過，就重畫
+    if (totalSeconds != lastSwSeconds || swStatusDirty) {
+      swStatusDirty = false;
+      updateStopwatchLine();
+    }
+  }
+
+  // 不用 delay()，程式會一直快快輪詢，碼錶才會準
+}
+
+
