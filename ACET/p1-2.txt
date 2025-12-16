@@ -1,0 +1,21 @@
+#define NUM 16
+int leds[NUM]{
+  D0,D1,2,3,4,5,6,7,8,9,10,11,12,13,D14,D15
+};
+
+void setup() {
+  for(int i = 0; i < NUM; i++){
+    if(i!=3){
+      pinMode(leds[i], OUTPUT);
+      digitalWrite(leds[i], HIGH);
+    }
+  }
+}
+
+void loop() {
+  for(int i=NUM;i>=0;i-- ){
+    digitalWrite(leds[i], LOW);
+    delay(600);
+    digitalWrite(leds[i], HIGH);
+   }
+}
