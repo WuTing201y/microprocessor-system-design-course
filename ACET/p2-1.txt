@@ -24,7 +24,9 @@ void setup() {
   for(int i = 0; i < 4; i++){
     toSeg(14,i);
   }
-  
+  pinMode(D15, OUTPUT);
+  pinMode(D14, OUTPUT);
+  pinMode(D2, OUTPUT);
 }
 void toSeg(int value, int pos)
 {
