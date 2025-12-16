@@ -1,0 +1,41 @@
+#define NUM 16
+int leds[NUM]{D0,D1,2,3,4,5,6,7,8,9,10,11,12,13,D14,D15};
+
+byte SEGMENT_MAP[] = {0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0X7F,0X6F,0X77,0X7C,0X39,0x00};
+byte SEGMENT_SELECT[] = {0x0E, 0X0D, 0X0B, 0X07, 0x00};
+
+#define LATCH_DIO D15
+#define CLK_DIO D14
+#define DATA_DIO D2
+#define BUTTON1 BT1
+#define BUTTON2 BT2
+#define BUTTON3 BT3
+#define BUTTON4 BT4
+
+void setup() {
+  for(int i = 0; i < NUM; i++){
+    if(i!=3){
+      pinMode(leds[i], OUTPUT);
+      digitalWrite(leds[i], HIGH);
+    }
+  }
+  for(int i = 0; i < 4; i++){
+    toSeg(14,i);
+  }
+  
+}
+void toSeg(int value, int pos)
+{
+  digitalWrite(D15, LOW);
+  shiftOut(D2, D14, MSBFIRST, SEGMENT_MAP[value]);
+  shiftOut(D2,D14,MSBFIRST, SEGMENT_SELECT[pos]);
+  digitalWrite(D15, HIGH);
+}
+void loop() {
+  for(int i = 3; i >=0; i--){
+    toSeg(8,i);
+    delay(500);
+  }
+  toSeg(14,4);
+  delay(500);
+}
