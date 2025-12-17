@@ -26,3 +26,21 @@ bool keyscan() {
   
   return false;  // 沒有按鍵被按下
 }
+
+
+byte keyScan()
+{
+  keyindex = 0;
+  
+  for(int i = 0; i < 4; i++){
+    digitalWrite(col[i], LOW);
+    for(int j = 0; j < 4; j++){
+      if(!digitalRead(row[j])){
+        keypressed = 1;
+        keyindex = 4*i+j;
+      }
+    }
+    digitalWrite(col[i], HIGH);
+  }
+  return keyindex;
+}
