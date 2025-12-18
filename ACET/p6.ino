@@ -10,8 +10,8 @@ void setup(){
 }
 // do re mi fa so la si 
 // c  d  e  f  g   a  b
-char song[] = "ccggaagffeeddc";
-unsigned long beats[] = {1,1,1,1,1,1,2,1,1,1,1,1,1,2};
+char song[] = "ccggaagffeeddc "; //空白=>休止符
+unsigned long beats[] = {1,1,1,1,1,1,2,1,1,1,1,1,1,2,4};
 int tempo = 300;
 int tone[] = {261, 294, 330, 349, 392, 440, 494};
 
@@ -19,9 +19,14 @@ void loop()
 {
 	for(int i = 0 ; i < sizeof(song); i++)
 	{
-		tone(D3, tone[i], tempo*beats[i]);
-		delay(tempo);
-		noTone(D3);
+		if(song[i] = '') delay(tempo*beats[i]);
+		else
+		{
+			tone(D3, tone[i], tempo*beats[i]);
+			delay(tempo);
+			noTone(D3);
+		}
+		
 	}
 	delay(tempo);
 }
