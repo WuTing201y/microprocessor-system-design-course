@@ -14,9 +14,13 @@ void setup(){
 
 void loop()
 {
-  Serial.print(num);
-  delay(500);
-
+  //========================
+//  Serial.print(num);
+//  Serial.println();
+//  num++;
+//  delay(500);
+  //========================
+  
   if(Serial.available()){
     ch = Serial.read();
     if(ch > '0' && ch <= '9'){
